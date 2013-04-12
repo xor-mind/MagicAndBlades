@@ -96,7 +96,7 @@ public:
 
 	void Init(Vector screenDim)
 	{
-		camera.dim = Vector( 32*16, 32 );
+		camera.dim = Vector( 32*16, 32*8 );
 		camera.pos = camera.vel = Vector( 0, 0 );
 		grass = Surface::BmpLoad( "./art/grass01.bmp" );
 		dirt  = Surface::BmpLoad( "./art/grass02.bmp" );
@@ -129,19 +129,32 @@ public:
 			  screenPos = Vector(0, 0);
 
 		// render map
-		while ( rCamDim.x > 0 )
+		while ( rCamDim.y > 0 )
 		{
-			// render tile 
-			int tile = (int)std::floor( cCamPos.x / 32 );
-			
-			auto tilePos = Vector( (float)((int)cCamPos.x % 32), 0 ),
-				 tileDim = Vector( min(32 - tilePos.x, rCamDim.x), 32 );
+			// tile to render
+			int tile = (int)std::floor( cCamPos.x / 32 ) 
+				+ (int)std::floor( cCamPos.y / 32 ) * w;
+
+			// local coords of tile to render
+			auto tilePos = Vector( (float)((int)cCamPos.x % 32), (float)((int)cCamPos.y % 32) ),
+				 tileDim = Vector( min( 32 - tilePos.x, rCamDim.x ), 
+								   min( 32 - tilePos.y, rCamDim.y ) );
 
 			Surface::OnDraw( display, data[tile], (int)screenPos.x, (int)screenPos.y, (int)tilePos.x, (int)tilePos.y, (int)tileDim.x, (int)tileDim.y );                                                            
 
 			screenPos.x += tileDim.x;
 			cCamPos.x   += tileDim.x;
 			rCamDim.x   -= tileDim.x;
+
+			if ( rCamDim.x <= 0)
+			{
+				screenPos.x = 0;
+				screenPos.y += tileDim.y;
+				cCamPos.y   += tileDim.y;
+				cCamPos.x   = camera.pos.x;
+				rCamDim.x   = camera.dim.x;
+				rCamDim.y   -= tileDim.y;
+			}
 		}
 
 		// render entities
@@ -180,19 +193,26 @@ public:
 	{
 		player.KeyDown( sym, mod, unicode );
 
-		if ( sym == SDLK_RIGHT )
-			camera.vel.x = 1;
-		else if ( sym == SDLK_LEFT )
-			camera.vel.x = -1;
+		switch ( sym )
+		{
+			case SDLK_RIGHT: camera.vel.x = 4; break;
+			case SDLK_LEFT: camera.vel.x = -4; break;
+			case SDLK_UP: camera.vel.y = -4; break;
+			case SDLK_DOWN: camera.vel.y = 4; break;
+				default: break;
+		}
 	}	
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
 		player.KeyUp( sym, mod, unicode );
-
-		if ( sym == SDLK_RIGHT )
-			camera.vel.x = 0;
-		else if ( sym == SDLK_LEFT )
-			camera.vel.x = 0;
+		switch ( sym )
+		{
+			case SDLK_RIGHT: camera.vel.x = 0; break;
+			case SDLK_LEFT: camera.vel.x = 0; break;
+			case SDLK_UP: camera.vel.y = 0; break;
+			case SDLK_DOWN: camera.vel.y = 0; break;
+				default: break;
+		}
 	}
 };
 
