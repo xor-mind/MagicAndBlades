@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="entity.h" />
     <ClInclude Include="MaB.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SDL_app.h" />

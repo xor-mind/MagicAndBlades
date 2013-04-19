@@ -5,14 +5,12 @@
 #include "SDL_app.h"
 #include "types.h"
 #include "winapi_timer.h"
+#include <string>
 #include <vector>
 #include <iostream>
-
-struct Entity
-{
-	Vector pos, dim, vel;
-	math::Rectangle Rect() { return math::Rectangle( pos, dim ); }
-};
+#include "entity.h"
+#include <boost/assign/std/vector.hpp> // for 'operator+=()'
+using namespace boost::assign; // bring 'operator+=()' into scope
 
 class Map
 {
@@ -26,62 +24,6 @@ public:
 	};
 
 	std::vector<SDL_Surface * > data;
-};
-
-class Player : public Entity
-{
-public:
-
-	int health;
-	SDL_Surface * model;
-
-	Player() : health(100) 
-	{
-		pos = vel = Vector(0,0);
-		dim = Vector(32,32);
-	}
-	
-	bool Init()
-	{
-		model = Surface::BmpLoad("./art/avatar01.bmp");
-		return true;
-	}
-	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
-	{
-		switch ( sym )
-		{
-			case SDLK_d: vel.x = 4; break;
-			case SDLK_a: vel.x = -4; break;
-			case SDLK_w: vel.y = -4; break;
-			case SDLK_s: vel.y = 4; break;
-				default: break;
-		}
-	}
-	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
-	{
-		switch ( sym )
-		{
-			case SDLK_d: vel.x = 0; break;
-			case SDLK_a: vel.x = 0; break;
-			case SDLK_w: vel.y = 0; break;
-			case SDLK_s: vel.y = 0; break;
-			default: break;
-		}
-	}
-	void Logic()
-	{
-		static auto startTime = GetTickCount();
-		if ( GetTickCount() - startTime > 150 )
-		{
-			pos += vel;
-			startTime = GetTickCount();
-		}
-	}
-	void Render( SDL_Surface* s )
-	{
-		Surface::OnDraw( s, model, (int)pos.x, (int)pos.y );
-	}
-
 };
 
 class HomeLand : public Map
@@ -114,13 +56,20 @@ public:
 	void Logic()
 	{
 		player.Logic();
-		static auto startTime = GetTickCount();
-		if ( GetTickCount() - startTime > 150 )
+		//static auto startTime = GetTickCount();
+		//if ( GetTickCount() - startTime > 150 )
 		{
 			camera.pos += camera.vel;
-			camera.pos.x = max( 0, min( camera.pos.x, w*32 - camera.dim.x ) );
-			startTime = GetTickCount();
+			Bound(camera);
+			Bound(player);
+			//startTime = GetTickCount();
 		}
+	}
+	// restricts an entities position to within the map
+	void Bound(Entity& e)
+	{
+		e.pos.x = max( 0, min( e.pos.x, w*32 - e.dim.x ) );
+		e.pos.y = max( 0, min( e.pos.y, h*32 - e.dim.y ) );
 	}
 	void Render( SDL_Surface * display )
 	{
@@ -188,7 +137,6 @@ public:
 
 		//player.Render( display );
 	}
-
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
 		player.KeyDown( sym, mod, unicode );
@@ -273,5 +221,18 @@ public:
 	}
 	
 };
+
+class Server
+{
+	
+};
+
+/*void gameFlow()
+{
+	Quest.title = "The lumberjack's Curse".
+	Quest.Summary = "Long ago there was a lumberjack named Terry. Terry was a curious lad and he was deep in the forest looking for unusual wood. The rarer the wood, the more valuable his pay. He a quaint clearing he saw a felled tree that seemed to sparkle. Thinking this was his lucky day he rushed into the clear with lust sparkling in his terry's eyes. As he approached the tree a Giant daemon phased into existent, sitting on the tree. The deamon stared deeped into Terry's eyes, into his soul. The deamon's eyes where a green yellow, and appeared to be alive with fire. Terry felt drawn into the gaze, and he could see deeper and deeper into the realm behind the daemon. \"Terry\" said, the deamon, \"You've come to a forbidden place, this tree was my loved one died many eons ago in a ferocious battle with the natives of this land. I mourn for here.";
+
+	Deamon.Spawn();
+}*/
 
 #endif
