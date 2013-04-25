@@ -29,10 +29,11 @@ public:
 class HomeLand : public Map
 {
 private:
-	SDL_Surface * grass, * dirt;
+	SDL_Surface * grass, * dirt, * avatar;
 	Player player;
+	AggGrool aggGrool;
 	Entity camera;
-
+	vEntities entities;
 public:
 	HomeLand() { w = h = 80; }
 
@@ -51,7 +52,13 @@ public:
 				else 
 					data.push_back( x % 2 != 0 ? grass : dirt );
 			}
-		player.Init();
+		avatar = Surface::BmpLoad("./art/avatar01.bmp");
+		player.Init(avatar);
+		aggGrool.Init(avatar);
+		aggGrool.pos = Vector(32*8,32*8);
+		entities.push_back(&camera);
+		entities.push_back(((Entity*)&player));
+		entities.push_back(((Entity*)&aggGrool));
 	}
 	void Logic()
 	{
@@ -60,8 +67,10 @@ public:
 		//if ( GetTickCount() - startTime > 150 )
 		{
 			camera.pos += camera.vel;
-			Bound(camera);
-			Bound(player);
+			for(Entity* e : entities)
+			{
+			   Bound(*e);
+			}
 			//startTime = GetTickCount();
 		}
 	}
@@ -107,27 +116,32 @@ public:
 		}
 
 		// render entities
-		if ( camera.Rect().Intersect( player.Rect() ) )
+		for(Entity* entity : entities)
 		{
-			math::Rectangle c( camera.pos, camera.dim ), // c = camera rect
-						    e( player.pos, player.dim ); // e = entity rect
-			// rect on rect clipping using deltas to capture the region showing in the cam.
-			int dcReL = c.right  - e.left,
-				deRcL = e.right  - c.left,
-				dcBeT = c.bottom - e.top,
-				deBcT = e.bottom - c.top;
-			int l = max( c.left, c.right - dcReL ),
-				r = min( c.right, c.left + deRcL ),
-				t = max( c.top, c.bottom - dcBeT ),
-				b = min( c.bottom, c.top + deBcT );
-			// translate to screen coords
-			int x = (int)(l - c.left), 
-				y = (int)(t - c.top),
-				srcX = (int)(l - e.left),
-				srcY = (int)(t - e.top),
-				srcW = (int)( r - l ),
-				srcH = (int)( b - t );
-			Surface::OnDraw( display, player.model, x, y, srcX, srcY, srcW, srcH );
+			if ( entity->model == nullptr )
+				continue; 
+			if ( camera.Rect().Intersect( entity->Rect() ) )
+			{
+				math::Rectangle c( camera.pos, camera.dim ), // c = camera rect
+								e( entity->pos, entity->dim ); // e = entity rect
+				// rect on rect clipping using deltas to capture the region showing in the cam.
+				int dcReL = c.right  - e.left,
+					deRcL = e.right  - c.left,
+					dcBeT = c.bottom - e.top,
+					deBcT = e.bottom - c.top;
+				int l = max( c.left, c.right - dcReL ),
+					r = min( c.right, c.left + deRcL ),
+					t = max( c.top, c.bottom - dcBeT ),
+					b = min( c.bottom, c.top + deBcT );
+				// translate to screen coords
+				int x = (int)(l - c.left), 
+					y = (int)(t - c.top),
+					srcX = (int)(l - e.left),
+					srcY = (int)(t - e.top),
+					srcW = (int)( r - l ),
+					srcH = (int)( b - t );
+				Surface::OnDraw( display, entity->model, x, y, srcX, srcY, srcW, srcH );
+			}
 		}
 		//while ( rCamDim.x > 0 )
 		//{
@@ -135,7 +149,7 @@ public:
 		//	Rectangle camera
 		//}
 
-		//player.Render( display );
+		//entity->Render( display );
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
@@ -161,6 +175,11 @@ public:
 			case SDLK_DOWN: camera.vel.y = 0; break;
 				default: break;
 		}
+	}
+	void CleanUp()
+	{
+		SDL_FreeSurface(grass); SDL_FreeSurface(dirt);
+		SDL_FreeSurface(avatar);
 	}
 };
 
@@ -219,7 +238,10 @@ public:
 		//	startTime = GetTickCount();
 		//}
 	}
-	
+	void Cleanup() override
+	{
+		hl.CleanUp();
+	}
 };
 
 class Server

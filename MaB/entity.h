@@ -8,24 +8,27 @@
 using namespace boost::assign; // bring 'operator+=()' into scope
 
 class Player;
-class GameEvents;
 struct Entity;
 class MultipleChoice;
 
 typedef std::vector<Player*> vPlayers; 
 typedef std::vector<Player*> lPlayers; 
-typedef std::list<GameEvents> gameEvents;
-typedef std::vector<Entity*> ePlayers; 
+typedef std::vector<Entity*> vEntities; 
 
-enum GE { ATTACK, MULTIPLE_CHOICE };
+enum EE { ATTACK, MULTIPLE_CHOICE, ENTER_FOV };
 
-struct GameEvent {
+struct EntityEvent {
 	int  type;
 };
+typedef std::list<EntityEvent*> lEntityEvents;
 
-class GameEvents
+class EntityEvents
 {
-	virtual void OnEvent(GameEvent* Event) 
+public:
+	virtual ~EntityEvents() {}
+	lEntityEvents entityEvents;
+
+	virtual void OnEvent(EntityEvent* Event) 
 	{
 		switch(Event->type) 
 		{
@@ -41,21 +44,43 @@ class GameEvents
 	}
 };
 
-struct Entity : public GameEvents
+struct Entity : public EntityEvents
 {
+	SDL_Surface * model;
+	Entity() : model(nullptr) {}
+	virtual ~Entity() {}
 	Vector pos, dim, vel;
 	math::Rectangle Rect() { return math::Rectangle( pos, dim ); }
-	void PushEvent(GameEvent* Event) {}
+	void PushEvent(EntityEvent* Event) 
+	{
+		entityEvents.push_back( Event );
+	}
+	virtual bool Init(SDL_Surface* s)
+	{
+		model = s;
+		return true;
+	}
 };
 
-class MultipleChoice : public GameEvent
+struct EnterFov : public EntityEvent
 {
+	Player* p;
+	EnterFov()
+	{
+		type = ENTER_FOV;
+	}
+};
+
+class MultipleChoice : public EntityEvent
+{
+public:
 	Str question;
 	Strs answers;
 	int selectedAnswer;
-	ePlayers playersQuestioned;
+	vEntities playersQuestioned;
 	Entity* questionner;
 public:
+	MultipleChoice() {}
 	MultipleChoice(Entity* questionner, Str& question, const Strs& answers)
 		: selectedAnswer(-1)
 	{
@@ -63,34 +88,34 @@ public:
 		this->question = question; this->answers = answers;
 		this->questionner = questionner;
 	}
-	void Init(Str& question, const Strs& answers)
+	void Init(Entity* questionner, Str& question, const Strs& answers)
 	{
-		this->question = question; this->answers = answers;
+		this->questionner = questionner; this->question = question; this->answers = answers;
 	}
 	
-	void AskPlayer(Entity* e)
+	void AskPlayer(Entity* player)
 	{
+		// if ( player == playerCharacter )
+		// ...
+
 		// make sure not to spam the player with requests for a question
-		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), e) != 
+		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), player) != 
 			playersQuestioned.end() )
 		{
-			e->PushEvent(this); // adds a dialog to the player render list
-			playersQuestioned.push_back(e);
+			player->PushEvent(this); // adds a dialog to the player render list
+			playersQuestioned.push_back(player);
 		}
 	}
 
-	void ClosedQuestion()
-	{
-	}
+	//void ClosedQuestion()
+	//{
+	//}
 };
-
-
-
-
 
 class Monster : public Entity
 {
 public:
+	virtual ~Monster() {}
 	// some properties of monsters
 	void Immortal( bool b ) { immortal = b; }
 	void InstaKill( bool b ) { instaKill = b; }
@@ -104,7 +129,7 @@ class Player : public Entity
 public:
 
 	int health;
-	SDL_Surface * model;
+	
 
 	Player() : health(100) 
 	{
@@ -112,11 +137,7 @@ public:
 		dim = Vector(32,32);
 	}
 	
-	bool Init()
-	{
-		model = Surface::BmpLoad("./art/avatar01.bmp");
-		return true;
-	}
+
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
 		switch ( sym )
@@ -141,6 +162,9 @@ public:
 	}
 	void Logic()
 	{
+		// if dialogDisplay
+		// display
+
 		//static auto startTime = SDL_GetTicks();
 		//if ( SDL_GetTicks() - startTime > 150 )
 		{
@@ -162,9 +186,15 @@ public:
 class AggGrool : public Monster
 {
 public:
+	int health;
 	MultipleChoice mc; 
+	AggGrool() : health(100) 
+	{
+		pos = vel = Vector(0,0);
+		dim = Vector(32,32);
+	}
 
-	void Init()
+	bool Init(SDL_Surface* s) override
 	{
 		Immortal(true);
 		InstaKill(true);
@@ -174,14 +204,14 @@ public:
 		Strs answers;
 		answers += "I have to live my own life, my son must deal with the world on his own terms.",
 				   "No matter what his well being comes first.";
-		mc.Init(question, answers);
-	}
+		mc.Init(this, question, answers);
 
+		return Entity::Init(s);
+	}
 	void Logic()
 	{
 
 	}
-
 	void PlayerEntersFoV(Player* p)
 	{
 		//if ( HasCompletedQuest(p, ThreeQuestions )
@@ -192,7 +222,6 @@ public:
 			}
 		}
 	}
-
 	void SingleQuestion(Player* p)
 	{
 		static Str intro = "You've come to a forbidden zone, answer me these three questions and I may let you live.";
@@ -217,5 +246,24 @@ public:
 		// waiting for the players response. different threads
 		// is the onlything that comes to mind?
 		
+	}
+	void MultipleChoiceEvent(MultipleChoice* mc)
+	{
+		if ( mc == &this->mc )
+		{
+			if ( mc->selectedAnswer == 0 )
+			{
+				// tell player, "You selfish son of a bitch, you're dead!"
+				// attack player
+				__asm nop;
+			}
+			else if ( mc->selectedAnswer == 1 )
+			{
+				// tell player, "You're loyalty is worthy of the gods themselves."
+				// give player treasure
+				// + ally player
+				__asm nop;
+			}
+		}
 	}
 };

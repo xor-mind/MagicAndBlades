@@ -83,6 +83,9 @@
   <ItemGroup>
     <ResourceCompile Include="MaB.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="latest.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
