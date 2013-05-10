@@ -46,11 +46,31 @@ public:
 
 struct Entity : public EntityEvents
 {
+	math::Rectangle FoV;
+	Vector fovDim;
 	SDL_Surface * model;
 	Entity() : model(nullptr) {}
 	virtual ~Entity() {}
 	Vector pos, dim, vel;
 	math::Rectangle Rect() { return math::Rectangle( pos, dim ); }
+	
+	void Logic()
+	{
+		// if dialogDisplay
+		// display
+
+		//static auto startTime = SDL_GetTicks();
+		//if ( SDL_GetTicks() - startTime > 150 )
+		{
+			pos += vel;
+			FoV.left = pos.x + dim.x/2 - fovDim.x;
+			FoV.right = pos.x + dim.x/2 + fovDim.x;
+			FoV.top = pos.y + dim.y/2 - fovDim.y;
+			FoV.bottom = pos.y + dim.y/2 + fovDim.x;
+			//fov.
+			//startTime = SDL_GetTicks();
+		}
+	}
 	void PushEvent(EntityEvent* Event) 
 	{
 		entityEvents.push_back( Event );
@@ -160,18 +180,7 @@ public:
 			default: break;
 		}
 	}
-	void Logic()
-	{
-		// if dialogDisplay
-		// display
 
-		//static auto startTime = SDL_GetTicks();
-		//if ( SDL_GetTicks() - startTime > 150 )
-		{
-			pos += vel;
-			//startTime = SDL_GetTicks();
-		}
-	}
 	void Render( SDL_Surface* s )
 	{
 		Surface::OnDraw( s, model, (int)pos.x, (int)pos.y );
@@ -192,6 +201,7 @@ public:
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
+		fovDim = Vector(100, 100);
 	}
 
 	bool Init(SDL_Surface* s) override

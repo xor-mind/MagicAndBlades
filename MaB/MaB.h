@@ -66,16 +66,18 @@ public:
 	void Logic()
 	{
 		player.Logic();
-		//static auto startTime = GetTickCount();
-		//if ( GetTickCount() - startTime > 150 )
+
+		camera.pos += camera.vel;
+		for(Entity* e : entities)
 		{
-			camera.pos += camera.vel;
-			for(Entity* e : entities)
-			{
-			   Bound(*e);
-			}
-			//startTime = GetTickCount();
+			Bound(*e);
 		}
+
+		if ( aggGrool.FoV.Intersect(player.Rect()) )
+		{
+			aggGrool.PlayerEntersFoV(&player);
+		}
+
 	}
 	// restricts an entities position to within the map
 	void Bound(Entity& e)
