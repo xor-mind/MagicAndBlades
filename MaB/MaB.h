@@ -66,6 +66,7 @@ public:
 	void Logic()
 	{
 		player.Logic();
+		aggGrool.Logic();
 
 		camera.pos += camera.vel;
 		for(Entity* e : entities)

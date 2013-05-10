@@ -220,7 +220,7 @@ public:
 	}
 	void Logic()
 	{
-
+		Entity::Logic();
 	}
 	void PlayerEntersFoV(Player* p)
 	{
