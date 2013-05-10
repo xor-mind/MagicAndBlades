@@ -4,7 +4,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "resource.h"
 
 
 int SDL_main(int argc, char *argv[])

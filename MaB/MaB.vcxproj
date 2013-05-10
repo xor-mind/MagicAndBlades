@@ -44,12 +44,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\SDL-1.2.15\include;C:\boost_1_53_0\boost;C:\SDL_image-1.2.12\include;C:\Users\Michael\Documents\code\cpp\library\winapi-library;C:\boost_1_53_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SDL-1.2.15\include;C:\boost_1_53_0\boost;C:\SDL_image-1.2.12\include;C:\Users\Michael\Documents\code\cpp\library\winapi-library;C:\boost_1_53_0;C:\SDL_ttf-2.0.11\include;C:\Users\Michael\Documents\code\cpp\library\sdlOOP\sdlOOP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\SDL-1.2.15\lib\x86;C:\SDL_image-1.2.12\lib\x86;C:\Users\Michael\Documents\code\cpp\library\winapi-library\UnicodeDebug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winapi_MDdu.lib;SDLmain.lib;SDL.lib;SDL_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\SDL_ttf-2.0.11\lib\x86;C:\SDL-1.2.15\lib\x86;C:\SDL_image-1.2.12\lib\x86;C:\Users\Michael\Documents\code\cpp\library\winapi-library\UnicodeDebug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winapi_MDdu.lib;SDLmain.lib;SDL.lib;SDL_image.lib;SDL_ttf.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -70,18 +70,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="App.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="MaB.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="SDL_app.h" />
-    <ClInclude Include="SDL_event.h" />
-    <ClInclude Include="SDL_surface.h" />
-    <ClInclude Include="types.h" />
-    <ClInclude Include="winapi_timer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="MaB.rc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt" />

@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="core">
-      <UniqueIdentifier>{802f8be8-a5e8-4a6e-94bd-97b007e7e8fc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="doc">
       <UniqueIdentifier>{55aad4da-1e37-4e56-9478-7562e2f3738c}</UniqueIdentifier>
     </Filter>
@@ -26,38 +23,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SDL_surface.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL_event.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL_app.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="App.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="MaB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="types.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="winapi_timer.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="MaB.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt">

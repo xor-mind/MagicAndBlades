@@ -10,6 +10,9 @@
 #include <iostream>
 #include "entity.h"
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
+#include "SDL_FpsCounter.h"
+#include "SDL_Text.h"
+#include <algorithm>
 using namespace boost::assign; // bring 'operator+=()' into scope
 
 class Map
@@ -77,8 +80,8 @@ public:
 	// restricts an entities position to within the map
 	void Bound(Entity& e)
 	{
-		e.pos.x = max( 0, min( e.pos.x, w*32 - e.dim.x ) );
-		e.pos.y = max( 0, min( e.pos.y, h*32 - e.dim.y ) );
+		e.pos.x = max( 0, min( (int)e.pos.x, (int)(w*32 - e.dim.x ) ) );
+		e.pos.y = max( 0, min( (int)e.pos.y, (int)(h*32 - e.dim.y ) ) );
 	}
 	void Render( SDL_Surface * display )
 	{
@@ -189,6 +192,7 @@ class MaB : public SDL_App
 	SDL_Surface * display;
 	HighPerformanceTimer hpt;
 	Vector screenDim;
+	FpsCounter fpsCounter;
 public:
 	MaB() {}
 	~MaB() {}
@@ -212,11 +216,13 @@ public:
 
 		hpt.InitTimer(20); 
 		// _putenv("SDL_VIDEODRIVER=windib"); whats frame rate with this in?
+		fpsCounter.Init(std::string( "consola.ttf" ));
 		return true;
 	}
 	void Render() override
 	{
 		hl.Render( display );
+		fpsCounter.Render( display, 0, 0 );
 		SDL_Flip(display);
 	}
 	void Logic() override 
@@ -232,6 +238,7 @@ public:
 			hpt.UpdateFixedStep();
 		}
 
+		fpsCounter.Logic();
 		//if ( GetTickCount() - startTime >= 1000 )
 		//{
 		//	std::cout << logicFPS << std::endl; logicFPS=0;
