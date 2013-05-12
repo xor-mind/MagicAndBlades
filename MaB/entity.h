@@ -5,6 +5,8 @@
 #include "SDL_surface.h"
 #include <list>
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
+#include "video.h"
+
 using namespace boost::assign; // bring 'operator+=()' into scope
 
 class Player;
@@ -54,6 +56,11 @@ struct Entity : public EntityEvents
 	Vector pos, dim, vel;
 	math::Rectangle Rect() { return math::Rectangle( pos, dim ); }
 	
+	void RenderFov()
+	{
+		SDL_Rect r = { FoV.left, FoV.top, FoV.right, FoV.bottom };
+		renderPerimiter(&r);
+	}
 	void Logic()
 	{
 		// if dialogDisplay
@@ -155,6 +162,7 @@ public:
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
+		fovDim = Vector(100, 100);
 	}
 	
 

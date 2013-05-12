@@ -146,6 +146,7 @@ public:
 					srcY = (int)(t - e.top),
 					srcW = (int)( r - l ),
 					srcH = (int)( b - t );
+				entity->RenderFov();
 				Surface::OnDraw( display, entity->model, x, y, srcX, srcY, srcW, srcH );
 			}
 		}

@@ -68,10 +68,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="video.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="entity.h" />
     <ClInclude Include="MaB.h" />
+    <ClInclude Include="video.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt" />
