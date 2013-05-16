@@ -1,11 +1,14 @@
-#include "2DMath.h"
 #include "types.h"
 #include <algorithm>
 #include "SDL.h"
 #include "SDL_surface.h"
 #include <list>
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
-#include "video.h"
+#include "SDL_Gfx.h"
+#include "Rectangle.h"
+
+typedef UsefulMath::Vector2   Vector;
+typedef UsefulMath::Rectangle Rect;
 
 using namespace boost::assign; // bring 'operator+=()' into scope
 
@@ -48,35 +51,29 @@ public:
 
 struct Entity : public EntityEvents
 {
-	math::Rectangle FoV;
+	SDL_Video* video;
+	Rect FoV;
 	Vector fovDim;
 	SDL_Surface * model;
 	Entity() : model(nullptr) {}
 	virtual ~Entity() {}
 	Vector pos, dim, vel;
-	math::Rectangle Rect() { return math::Rectangle( pos, dim ); }
-	
-	void RenderFov()
+	Rect Rectangle() { return Rect( pos, dim ); }
+
+	void RenderFov( Rect & cam)
 	{
-		SDL_Rect r = { FoV.left, FoV.top, FoV.right, FoV.bottom };
-		renderPerimiter(&r);
+		FoV.left = pos.x + dim.x/2 - fovDim.x;
+		FoV.right = pos.x + dim.x/2 + fovDim.x;
+		FoV.top = pos.y + dim.y/2 - fovDim.y;
+		FoV.bottom = pos.y + dim.y/2 + fovDim.x;
+		Rect r = FoV;
+		r.left  -= cam.left; r.top -= cam.top;
+		r.right -= cam.left; r.bottom -= cam.top;
+		video->renderPerimiter(&r);
 	}
 	void Logic()
 	{
-		// if dialogDisplay
-		// display
-
-		//static auto startTime = SDL_GetTicks();
-		//if ( SDL_GetTicks() - startTime > 150 )
-		{
-			pos += vel;
-			FoV.left = pos.x + dim.x/2 - fovDim.x;
-			FoV.right = pos.x + dim.x/2 + fovDim.x;
-			FoV.top = pos.y + dim.y/2 - fovDim.y;
-			FoV.bottom = pos.y + dim.y/2 + fovDim.x;
-			//fov.
-			//startTime = SDL_GetTicks();
-		}
+		pos += vel;
 	}
 	void PushEvent(EntityEvent* Event) 
 	{

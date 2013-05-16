@@ -1,7 +1,6 @@
 #ifndef MAB_H
 #define MAB_H
 
-#include "2DMath.h"
 #include "SDL_app.h"
 #include "types.h"
 #include "winapi_timer.h"
@@ -13,7 +12,10 @@
 #include "SDL_FpsCounter.h"
 #include "SDL_Text.h"
 #include <algorithm>
+#include "SDL_Gfx.h"
+#include "Dialog.h"
 using namespace boost::assign; // bring 'operator+=()' into scope
+
 
 class Map
 {
@@ -32,18 +34,29 @@ public:
 class HomeLand : public Map
 {
 private:
+	Dialog dialog;
 	SDL_Surface * grass, * dirt, * avatar;
 	Player player;
 	AggGrool aggGrool;
 	Entity camera;
 	vEntities entities;
+	SDL_Rect clipRect;
+	SDL_Video video;
+
+	
 public:
 	HomeLand() { w = h = 80; }
 
-	void Init(Vector screenDim)
+	void Init( SDL_Surface * display, Vector screenDim )
 	{
-		camera.dim = Vector( 32*16, 32*8 );
+		dialog.Init();
+		video.screen = display;
 		camera.pos = camera.vel = Vector( 0, 0 );
+		camera.dim = Vector( 32*16, 32*8 );
+		clipRect.x = 0; clipRect.y =  0, clipRect.w = camera.dim.x; clipRect.h = camera.dim.y;
+		video.clipRect = clipRect;
+		SDL_SetClipRect(display, &clipRect);
+
 		grass = Surface::BmpLoad( "./art/grass01.bmp" );
 		dirt  = Surface::BmpLoad( "./art/grass02.bmp" );
 
@@ -62,6 +75,11 @@ public:
 		entities.push_back(&camera);
 		entities.push_back(((Entity*)&player));
 		entities.push_back(((Entity*)&aggGrool));
+
+		for( Entity* e: entities )
+		{
+			e->video = &video;
+		}
 	}
 	void Logic()
 	{
@@ -74,7 +92,7 @@ public:
 			Bound(*e);
 		}
 
-		if ( aggGrool.FoV.Intersect(player.Rect()) )
+		if ( aggGrool.FoV.Intersect(player.Rectangle()) )
 		{
 			aggGrool.PlayerEntersFoV(&player);
 		}
@@ -86,7 +104,7 @@ public:
 		e.pos.x = max( 0, min( (int)e.pos.x, (int)(w*32 - e.dim.x ) ) );
 		e.pos.y = max( 0, min( (int)e.pos.y, (int)(h*32 - e.dim.y ) ) );
 	}
-	void Render( SDL_Surface * display )
+	void Render( SDL_Surface * screen )
 	{
 		auto  rCamDim   = camera.dim, // remaining camera dimension
 		      cCamPos   = camera.pos, // current camera pos 
@@ -104,7 +122,7 @@ public:
 				 tileDim = Vector( min( 32 - tilePos.x, rCamDim.x ), 
 								   min( 32 - tilePos.y, rCamDim.y ) );
 
-			Surface::OnDraw( display, data[tile], (int)screenPos.x, (int)screenPos.y, (int)tilePos.x, (int)tilePos.y, (int)tileDim.x, (int)tileDim.y );                                                            
+			Surface::OnDraw( screen, data[tile], (int)screenPos.x, (int)screenPos.y, (int)tilePos.x, (int)tilePos.y, (int)tileDim.x, (int)tileDim.y );                                                            
 
 			screenPos.x += tileDim.x;
 			cCamPos.x   += tileDim.x;
@@ -126,9 +144,9 @@ public:
 		{
 			if ( entity->model == nullptr )
 				continue; 
-			if ( camera.Rect().Intersect( entity->Rect() ) )
+			if ( camera.Rectangle().Intersect( entity->Rectangle() ) )
 			{
-				math::Rectangle c( camera.pos, camera.dim ), // c = camera rect
+				Rect c( camera.pos, camera.dim ), // c = camera rect
 								e( entity->pos, entity->dim ); // e = entity rect
 				// rect on rect clipping using deltas to capture the region showing in the cam.
 				int dcReL = c.right  - e.left,
@@ -146,17 +164,12 @@ public:
 					srcY = (int)(t - e.top),
 					srcW = (int)( r - l ),
 					srcH = (int)( b - t );
-				entity->RenderFov();
-				Surface::OnDraw( display, entity->model, x, y, srcX, srcY, srcW, srcH );
+				entity->RenderFov( camera.Rectangle() );
+				Surface::OnDraw( screen, entity->model, x, y, srcX, srcY, srcW, srcH );
 			}
 		}
-		//while ( rCamDim.x > 0 )
-		//{
-		//	// check for intersection between camera and entity
-		//	Rectangle camera
-		//}
 
-		//entity->Render( display );
+		dialog.Render( screen );
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
@@ -193,10 +206,11 @@ public:
 class MaB : public SDL_App
 {
 	HomeLand hl;
-	SDL_Surface * display;
+	SDL_Surface * screen;
 	HighPerformanceTimer hpt;
 	Vector screenDim;
 	FpsCounter fpsCounter;
+	SDL_Video video;
 public:
 	MaB() {}
 	~MaB() {}
@@ -211,23 +225,24 @@ public:
 	}
 	bool Init() override
 	{
+		video.screen = screen;
 		screenDim = Vector( 600, 600 );
-		if((display = SDL_SetVideoMode( (int)screenDim.x, (int)screenDim.y, 32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL) 
+		if((screen = SDL_SetVideoMode( (int)screenDim.x, (int)screenDim.y, 32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL) 
 		{
 			return false;
 		}
-		hl.Init( screenDim );
+		hl.Init( screen, screenDim );
 
 		hpt.InitTimer(20); 
 		// _putenv("SDL_VIDEODRIVER=windib"); whats frame rate with this in?
-		fpsCounter.Init(std::string( "consola.ttf" ));
+		fpsCounter.Init( std::string( "consola.ttf" ) );
 		return true;
 	}
 	void Render() override
 	{
-		hl.Render( display );
-		fpsCounter.Render( display, 0, 0 );
-		SDL_Flip(display);
+		hl.Render( screen );
+		fpsCounter.Render( screen, 0, 0 );
+		SDL_Flip( screen );
 	}
 	void Logic() override 
 	{ 
