@@ -44,7 +44,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\SDL-1.2.15\include;C:\boost_1_53_0\boost;C:\SDL_image-1.2.12\include;C:\Users\Michael\Documents\code\cpp\library\winapi-library;C:\boost_1_53_0;C:\SDL_ttf-2.0.11\include;C:\Users\Michael\Documents\code\cpp\library\sdlOOP\sdlOOP;C:\Users\Michael\Documents\code\cpp\library\UsefulMath\UsefulMath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SDL-1.2.15\include;C:\boost_1_53_0\boost;C:\SDL_image-1.2.12\include;C:\boost_1_53_0;C:\SDL_ttf-2.0.11\include;C:\Users\Michael\Documents\code\cpp\library\sdlOOP\sdlOOP;C:\Users\Michael\Documents\code\cpp\library\UsefulMath\UsefulMath;C:\Users\Michael\Documents\code\cpp\library\winapi-library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

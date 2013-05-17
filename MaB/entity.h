@@ -6,6 +6,7 @@
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include "SDL_Gfx.h"
 #include "Rectangle.h"
+#include "Dialog.h"
 
 typedef UsefulMath::Vector2   Vector;
 typedef UsefulMath::Rectangle Rect;
@@ -33,8 +34,13 @@ public:
 	virtual ~EntityEvents() {}
 	lEntityEvents entityEvents;
 
-	virtual void OnEvent(EntityEvent* Event) 
+	virtual void OnEvent() 
 	{
+		if ( entityEvents.empty() )
+			return;
+		EntityEvent* Event = entityEvents.front();
+		entityEvents.pop_front();
+
 		switch(Event->type) 
 		{
 			case MULTIPLE_CHOICE: 
@@ -62,10 +68,10 @@ struct Entity : public EntityEvents
 
 	void RenderFov( Rect & cam)
 	{
-		FoV.left = pos.x + dim.x/2 - fovDim.x;
-		FoV.right = pos.x + dim.x/2 + fovDim.x;
-		FoV.top = pos.y + dim.y/2 - fovDim.y;
-		FoV.bottom = pos.y + dim.y/2 + fovDim.x;
+		FoV.left = (int)( pos.x + dim.x/2 - fovDim.x );
+		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
+		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
+		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
 		Rect r = FoV;
 		r.left  -= cam.left; r.top -= cam.top;
 		r.right -= cam.left; r.bottom -= cam.top;
@@ -74,7 +80,10 @@ struct Entity : public EntityEvents
 	void Logic()
 	{
 		pos += vel;
+
+		OnEvent();
 	}
+	virtual void Render( SDL_Surface* dest, const Rect& cameraRect ) {}
 	void PushEvent(EntityEvent* Event) 
 	{
 		entityEvents.push_back( Event );
@@ -104,7 +113,7 @@ public:
 	vEntities playersQuestioned;
 	Entity* questionner;
 public:
-	MultipleChoice() {}
+	MultipleChoice() { type = MULTIPLE_CHOICE; }
 	MultipleChoice(Entity* questionner, Str& question, const Strs& answers)
 		: selectedAnswer(-1)
 	{
@@ -123,7 +132,7 @@ public:
 		// ...
 
 		// make sure not to spam the player with requests for a question
-		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), player) != 
+		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), player) == 
 			playersQuestioned.end() )
 		{
 			player->PushEvent(this); // adds a dialog to the player render list
@@ -153,13 +162,14 @@ class Player : public Entity
 public:
 
 	int health;
-	
+	Dialog * dialog;
 
 	Player() : health(100) 
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
+		dialog = nullptr;
 	}
 	
 
@@ -186,14 +196,25 @@ public:
 		}
 	}
 
-	void Render( SDL_Surface* s )
+	void Render( SDL_Surface* dest, const Rect& cameraRect ) override
 	{
-		Surface::OnDraw( s, model, (int)pos.x, (int)pos.y );
+		if ( dialog )
+		{	
+			dialog->UpdateRect( cameraRect );
+			dialog->Render( dest, cameraRect );
+		}
+		//Surface::OnDraw( s, model, (int)pos.x, (int)pos.y );
 	}
 
 	void MultipleChoiceEvent(MultipleChoice* mc) override
 	{
 		// create dialog and send answer back to deamon
+		if ( dialog )
+			__asm int 13; // WTF!?
+
+		dialog = new Dialog();
+		dialog->msgs.push_back( mc->question );
+		dialog->CalcLines();
 	}
 };
 

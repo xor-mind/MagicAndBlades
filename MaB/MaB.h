@@ -34,7 +34,7 @@ public:
 class HomeLand : public Map
 {
 private:
-	Dialog dialog;
+	Dialog * dialog;
 	SDL_Surface * grass, * dirt, * avatar;
 	Player player;
 	AggGrool aggGrool;
@@ -45,15 +45,16 @@ private:
 
 	
 public:
-	HomeLand() { w = h = 80; }
+	HomeLand() { w = h = 80; dialog = nullptr; }
 
 	void Init( SDL_Surface * display, Vector screenDim )
 	{
-		dialog.Init();
+		
 		video.screen = display;
 		camera.pos = camera.vel = Vector( 0, 0 );
-		camera.dim = Vector( 32*16, 32*8 );
-		clipRect.x = 0; clipRect.y =  0, clipRect.w = camera.dim.x; clipRect.h = camera.dim.y;
+		camera.dim = Vector( 32*16, 32*8 ); // map is 512x256
+
+		clipRect.x = 0; clipRect.y =  0, clipRect.w = (Uint16)camera.dim.x; clipRect.h = (Uint16)camera.dim.y;
 		video.clipRect = clipRect;
 		SDL_SetClipRect(display, &clipRect);
 
@@ -97,18 +98,22 @@ public:
 			aggGrool.PlayerEntersFoV(&player);
 		}
 
+		if ( dialog )
+			dialog->UpdateRect( camera.Rectangle() );
+
 	}
 	// restricts an entities position to within the map
 	void Bound(Entity& e)
 	{
-		e.pos.x = max( 0, min( (int)e.pos.x, (int)(w*32 - e.dim.x ) ) );
-		e.pos.y = max( 0, min( (int)e.pos.y, (int)(h*32 - e.dim.y ) ) );
+		e.pos.x = (float)( max( 0, min( (int)e.pos.x, (int)(w*32 - e.dim.x ) ) ) );
+		e.pos.y = (float)( max( 0, min( (int)e.pos.y, (int)(h*32 - e.dim.y ) ) ) );
 	}
 	void Render( SDL_Surface * screen )
 	{
 		auto  rCamDim   = camera.dim, // remaining camera dimension
 		      cCamPos   = camera.pos, // current camera pos 
 			  screenPos = Vector(0, 0);
+		auto cr = camera.Rectangle();
 
 		// render map
 		while ( rCamDim.y > 0 )
@@ -164,12 +169,14 @@ public:
 					srcY = (int)(t - e.top),
 					srcW = (int)( r - l ),
 					srcH = (int)( b - t );
-				entity->RenderFov( camera.Rectangle() );
+				entity->RenderFov( cr );
 				Surface::OnDraw( screen, entity->model, x, y, srcX, srcY, srcW, srcH );
+				entity->Render( screen, cr );
 			}
 		}
 
-		dialog.Render( screen );
+		if (dialog )
+			dialog->Render( screen, cr );
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
@@ -181,7 +188,18 @@ public:
 			case SDLK_LEFT: camera.vel.x = -4; break;
 			case SDLK_UP: camera.vel.y = -4; break;
 			case SDLK_DOWN: camera.vel.y = 4; break;
-				default: break;
+			case SDLK_SPACE:
+				{
+					if ( dialog == nullptr) {
+						dialog = new Dialog( camera.Rectangle() );
+						dialog->CalcLines();
+					}
+					else {
+						delete dialog;
+						dialog = nullptr;
+					}
+				} break;
+			default: break;
 		}
 	}	
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
