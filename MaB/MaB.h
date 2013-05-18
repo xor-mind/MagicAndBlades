@@ -14,6 +14,8 @@
 #include <algorithm>
 #include "SDL_Gfx.h"
 #include "Dialog.h"
+#include "Game.h"
+#include <memory>
 using namespace boost::assign; // bring 'operator+=()' into scope
 
 
@@ -22,7 +24,7 @@ class Map
 protected:
 	uint w,h; 
 public:
-
+	virtual ~Map() {}
 	class Cell
 	{ 
 	public:
@@ -34,27 +36,32 @@ public:
 class HomeLand : public Map
 {
 private:
-	Dialog * dialog;
 	SDL_Surface * grass, * dirt, * avatar;
-	Player player;
-	AggGrool aggGrool;
-	Entity camera;
-	vEntities entities;
+	std::unique_ptr<Player> player;
+	std::unique_ptr<AggGrool> aggGrool;
+	std::unique_ptr<Entity> camera;
+	EntityVector entities;
 	SDL_Rect clipRect;
 	SDL_Video video;
-
+	Game& g;
 	
 public:
-	HomeLand() { w = h = 80; dialog = nullptr; }
+	HomeLand( Game& game) : g( game )
+	{ 
+		w = h = 80; 
+		camera.reset( new Entity( g ) );
+		player.reset( new Player( g ) );
+		aggGrool.reset( new AggGrool( g ) );
+	}
 
-	void Init( SDL_Surface * display, Vector screenDim )
+	void Init( SDL_Surface * display )
 	{
 		
 		video.screen = display;
-		camera.pos = camera.vel = Vector( 0, 0 );
-		camera.dim = Vector( 32*16, 32*8 ); // map is 512x256
+		camera->pos = camera->vel = Vector( 0, 0 );
+		camera->dim = Vector( 32*16, 32*8 ); // map is 512x256
 
-		clipRect.x = 0; clipRect.y =  0, clipRect.w = (Uint16)camera.dim.x; clipRect.h = (Uint16)camera.dim.y;
+		clipRect.x = 0; clipRect.y =  0, clipRect.w = (Uint16)camera->dim.x; clipRect.h = (Uint16)camera->dim.y;
 		video.clipRect = clipRect;
 		SDL_SetClipRect(display, &clipRect);
 
@@ -70,12 +77,12 @@ public:
 					data.push_back( x % 2 != 0 ? grass : dirt );
 			}
 		avatar = Surface::BmpLoad("./art/avatar01.bmp");
-		player.Init(avatar);
-		aggGrool.Init(avatar);
-		aggGrool.pos = Vector(32*8,32*8);
-		entities.push_back(&camera);
-		entities.push_back(((Entity*)&player));
-		entities.push_back(((Entity*)&aggGrool));
+		player->Init(avatar);
+		aggGrool->Init(avatar);
+		aggGrool->pos = Vector(32*8,32*8);
+		entities.push_back( camera.get() );
+		entities.push_back(( (Entity*)player.get() ));
+		entities.push_back(( (Entity*)aggGrool.get() ));
 
 		for( Entity* e: entities )
 		{
@@ -84,23 +91,19 @@ public:
 	}
 	void Logic()
 	{
-		player.Logic();
-		aggGrool.Logic();
+		player->Logic();
+		aggGrool->Logic();
 
-		camera.pos += camera.vel;
+		camera->pos += camera->vel;
 		for(Entity* e : entities)
 		{
 			Bound(*e);
 		}
 
-		if ( aggGrool.FoV.Intersect(player.Rectangle()) )
+		if ( aggGrool->FoV.Intersect(player->Rectangle()) )
 		{
-			aggGrool.PlayerEntersFoV(&player);
+			aggGrool->PlayerEntersFoV( player.get() );
 		}
-
-		if ( dialog )
-			dialog->UpdateRect( camera.Rectangle() );
-
 	}
 	// restricts an entities position to within the map
 	void Bound(Entity& e)
@@ -110,10 +113,10 @@ public:
 	}
 	void Render( SDL_Surface * screen )
 	{
-		auto  rCamDim   = camera.dim, // remaining camera dimension
-		      cCamPos   = camera.pos, // current camera pos 
+		auto  rCamDim   = camera->dim, // remaining camera dimension
+		      cCamPos   = camera->pos, // current camera pos 
 			  screenPos = Vector(0, 0);
-		auto cr = camera.Rectangle();
+		auto cr = camera->Rectangle();
 
 		// render map
 		while ( rCamDim.y > 0 )
@@ -138,8 +141,8 @@ public:
 				screenPos.x = 0;
 				screenPos.y += tileDim.y;
 				cCamPos.y   += tileDim.y;
-				cCamPos.x   = camera.pos.x;
-				rCamDim.x   = camera.dim.x;
+				cCamPos.x   = camera->pos.x;
+				rCamDim.x   = camera->dim.x;
 				rCamDim.y   -= tileDim.y;
 			}
 		}
@@ -149,9 +152,9 @@ public:
 		{
 			if ( entity->model == nullptr )
 				continue; 
-			if ( camera.Rectangle().Intersect( entity->Rectangle() ) )
+			if ( camera->Rectangle().Intersect( entity->Rectangle() ) )
 			{
-				Rect c( camera.pos, camera.dim ), // c = camera rect
+				Rect c( camera->pos, camera->dim ), // c = camera rect
 								e( entity->pos, entity->dim ); // e = entity rect
 				// rect on rect clipping using deltas to capture the region showing in the cam.
 				int dcReL = c.right  - e.left,
@@ -174,43 +177,40 @@ public:
 				entity->Render( screen, cr );
 			}
 		}
-
-		if (dialog )
-			dialog->Render( screen, cr );
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		player.KeyDown( sym, mod, unicode );
+		player->KeyDown( sym, mod, unicode );
 
 		switch ( sym )
 		{
-			case SDLK_RIGHT: camera.vel.x = 4; break;
-			case SDLK_LEFT: camera.vel.x = -4; break;
-			case SDLK_UP: camera.vel.y = -4; break;
-			case SDLK_DOWN: camera.vel.y = 4; break;
-			case SDLK_SPACE:
-				{
-					if ( dialog == nullptr) {
-						dialog = new Dialog( camera.Rectangle() );
-						dialog->CalcLines();
-					}
-					else {
-						delete dialog;
-						dialog = nullptr;
-					}
-				} break;
+			case SDLK_RIGHT: camera->vel.x = 4; break;
+			case SDLK_LEFT: camera->vel.x = -4; break;
+			case SDLK_UP: camera->vel.y = -4; break;
+			case SDLK_DOWN: camera->vel.y = 4; break;
+			//case SDLK_SPACE:
+			//	{
+					//if ( dialog == nullptr) {
+					//	dialog = new Dialog( camera.Rectangle() );
+					//	dialog->CalcLines();
+					//}
+					//else {
+					//	delete dialog;
+					//	dialog = nullptr;
+					//}
+				//} break;
 			default: break;
 		}
 	}	
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		player.KeyUp( sym, mod, unicode );
+		player->KeyUp( sym, mod, unicode );
 		switch ( sym )
 		{
-			case SDLK_RIGHT: camera.vel.x = 0; break;
-			case SDLK_LEFT: camera.vel.x = 0; break;
-			case SDLK_UP: camera.vel.y = 0; break;
-			case SDLK_DOWN: camera.vel.y = 0; break;
+			case SDLK_RIGHT: camera->vel.x = 0; break;
+			case SDLK_LEFT: camera->vel.x = 0; break;
+			case SDLK_UP: camera->vel.y = 0; break;
+			case SDLK_DOWN: camera->vel.y = 0; break;
 				default: break;
 		}
 	}
@@ -223,7 +223,7 @@ public:
 
 class MaB : public SDL_App
 {
-	HomeLand hl;
+	Game g;
 	SDL_Surface * screen;
 	HighPerformanceTimer hpt;
 	Vector screenDim;
@@ -235,11 +235,11 @@ public:
 	
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override
 	{
-		hl.KeyDown( sym, mod, unicode );
+		((HomeLand*)g.map)->KeyDown( sym, mod, unicode );
 	}
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) override
 	{
-		hl.KeyUp( sym, mod, unicode );
+		((HomeLand*)g.map)->KeyUp( sym, mod, unicode );
 	}
 	bool Init() override
 	{
@@ -249,7 +249,9 @@ public:
 		{
 			return false;
 		}
-		hl.Init( screen, screenDim );
+
+		g.map = new HomeLand( g );
+		((HomeLand*)g.map)->Init( screen );
 
 		hpt.InitTimer(20); 
 		// _putenv("SDL_VIDEODRIVER=windib"); whats frame rate with this in?
@@ -258,7 +260,7 @@ public:
 	}
 	void Render() override
 	{
-		hl.Render( screen );
+		((HomeLand*)g.map)->Render( screen );
 		fpsCounter.Render( screen, 0, 0 );
 		SDL_Flip( screen );
 	}
@@ -270,13 +272,13 @@ public:
 		hpt.UpdateTime1();
 		if ( hpt.DeltaTime() >= hpt.LogicTime() )
 		{
-			hl.Logic(); 
+			((HomeLand*)g.map)->Logic(); 
 			//logicFPS++;
 			hpt.UpdateFixedStep();
 		}
 
 		fpsCounter.Logic();
-		//if ( GetTickCount() - startTime >= 1000 )
+		//if ( GetTickCounta() - startTime >= 1000 )
 		//{
 		//	std::cout << logicFPS << std::endl; logicFPS=0;
 		//	startTime = GetTickCount();
@@ -284,7 +286,7 @@ public:
 	}
 	void Cleanup() override
 	{
-		hl.CleanUp();
+		((HomeLand*)g.map)->CleanUp();
 	}
 };
 

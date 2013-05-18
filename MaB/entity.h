@@ -7,61 +7,19 @@
 #include "SDL_Gfx.h"
 #include "Rectangle.h"
 #include "Dialog.h"
-
-typedef UsefulMath::Vector2   Vector;
-typedef UsefulMath::Rectangle Rect;
+#include "EntityEvents.h"
+#include "Game.h"
 
 using namespace boost::assign; // bring 'operator+=()' into scope
 
-class Player;
-struct Entity;
-class MultipleChoice;
-
-typedef std::vector<Player*> vPlayers; 
-typedef std::vector<Player*> lPlayers; 
-typedef std::vector<Entity*> vEntities; 
-
-enum EE { ATTACK, MULTIPLE_CHOICE, ENTER_FOV };
-
-struct EntityEvent {
-	int  type;
-};
-typedef std::list<EntityEvent*> lEntityEvents;
-
-class EntityEvents
-{
-public:
-	virtual ~EntityEvents() {}
-	lEntityEvents entityEvents;
-
-	virtual void OnEvent() 
-	{
-		if ( entityEvents.empty() )
-			return;
-		EntityEvent* Event = entityEvents.front();
-		entityEvents.pop_front();
-
-		switch(Event->type) 
-		{
-			case MULTIPLE_CHOICE: 
-			{
-				MultipleChoiceEvent((MultipleChoice*)Event);		
-			} break;
-		}	
-	}
-
-	virtual void MultipleChoiceEvent(MultipleChoice* mc)
-	{
-	}
-};
-
-struct Entity : public EntityEvents
+struct Entity : public EntityEventManager
 {
 	SDL_Video* video;
 	Rect FoV;
 	Vector fovDim;
 	SDL_Surface * model;
-	Entity() : model(nullptr) {}
+	Game& g;
+	Entity( Game& game ) : model(nullptr), g( game ) {}
 	virtual ~Entity() {}
 	Vector pos, dim, vel;
 	Rect Rectangle() { return Rect( pos, dim ); }
@@ -81,13 +39,13 @@ struct Entity : public EntityEvents
 	{
 		pos += vel;
 
-		OnEvent();
+		ProcessEvent();
 	}
 	virtual void Render( SDL_Surface* dest, const Rect& cameraRect ) {}
-	void PushEvent(EntityEvent* Event) 
-	{
-		entityEvents.push_back( Event );
-	}
+	//void PushEvent(EntityEvent* Event) 
+	//{
+	//	entityEvents.push_back( Event );
+	//}
 	virtual bool Init(SDL_Surface* s)
 	{
 		model = s;
@@ -95,59 +53,12 @@ struct Entity : public EntityEvents
 	}
 };
 
-struct EnterFov : public EntityEvent
-{
-	Player* p;
-	EnterFov()
-	{
-		type = ENTER_FOV;
-	}
-};
-
-class MultipleChoice : public EntityEvent
-{
-public:
-	Str question;
-	Strs answers;
-	int selectedAnswer;
-	vEntities playersQuestioned;
-	Entity* questionner;
-public:
-	MultipleChoice() { type = MULTIPLE_CHOICE; }
-	MultipleChoice(Entity* questionner, Str& question, const Strs& answers)
-		: selectedAnswer(-1)
-	{
-		type = MULTIPLE_CHOICE;
-		this->question = question; this->answers = answers;
-		this->questionner = questionner;
-	}
-	void Init(Entity* questionner, Str& question, const Strs& answers)
-	{
-		this->questionner = questionner; this->question = question; this->answers = answers;
-	}
-	
-	void AskPlayer(Entity* player)
-	{
-		// if ( player == playerCharacter )
-		// ...
-
-		// make sure not to spam the player with requests for a question
-		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), player) == 
-			playersQuestioned.end() )
-		{
-			player->PushEvent(this); // adds a dialog to the player render list
-			playersQuestioned.push_back(player);
-		}
-	}
-
-	//void ClosedQuestion()
-	//{
-	//}
-};
+typedef std::vector<Entity*> EntityVector;
 
 class Monster : public Entity
 {
 public:
+	Monster(Game& g) : Entity(g) {}
 	virtual ~Monster() {}
 	// some properties of monsters
 	void Immortal( bool b ) { immortal = b; }
@@ -164,7 +75,7 @@ public:
 	int health;
 	Dialog * dialog;
 
-	Player() : health(100) 
+	Player( Game& g) : Entity(g), health(100) 
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
@@ -223,7 +134,7 @@ class AggGrool : public Monster
 public:
 	int health;
 	MultipleChoice mc; 
-	AggGrool() : health(100) 
+	AggGrool( Game& g) : Monster(g), health(100) 
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
