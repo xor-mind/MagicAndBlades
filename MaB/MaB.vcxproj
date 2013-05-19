@@ -72,11 +72,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dialog.h" />
-    <ClInclude Include="entity.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityEvents.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="MaB.h" />
     <ClInclude Include="MaB_Types.h" />
+    <ClInclude Include="Map.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt" />

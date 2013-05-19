@@ -4,6 +4,8 @@
 #include "Rectangle.h"
 #include <string>
 
+typedef unsigned int uint;
+
 typedef std::string Str;
 typedef std::pair<int,int> IntPair;
 
