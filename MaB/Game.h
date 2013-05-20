@@ -4,14 +4,15 @@
 #include "MaB_Types.h"
 
 class Map;
+struct Entity;
 
 struct Game
 {
-	Rect camera;
+	Entity* camera;
 	Map* map;
 
 	Game() : map( nullptr ) {}
-	~Game();
+	~Game() { }
 };
 
 #endif

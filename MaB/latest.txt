@@ -9,3 +9,13 @@ So the entity events are looking robust enough to work in this game.
 
 I need to just get a dialog with some text up on and and the ability to type/choose an answer
 and my little POC for a daemon and human talking will be complete! FUN FUN
+
+todo:
+
+high priority:
+
+- add input for dialogs
+
+low priority:
+
+- get entity/game/map design tightend. 

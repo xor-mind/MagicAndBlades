@@ -41,7 +41,19 @@ struct Entity : public EntityEventManager
 
 		ProcessEvent();
 	}
-	virtual void Render( SDL_Surface* dest, const Rect& cameraRect ) {}
+	virtual void Render( SDL_Surface* dest )
+	{
+		if ( model == nullptr )
+				return; 
+		Rect cr = g.camera->Rectangle();
+		if ( cr.Intersect( Rectangle() ) )
+		{
+			int render_x = (int)( pos.x - cr.left ),
+				render_y = (int)( pos.y - cr.top );
+			RenderFov( cr );
+			Surface::OnDraw( dest, model, render_x, render_y );
+		}
+	}
 	//void PushEvent(EntityEvent* Event) 
 	//{
 	//	entityEvents.push_back( Event );
@@ -107,14 +119,19 @@ public:
 		}
 	}
 
-	void Render( SDL_Surface* dest, const Rect& cameraRect ) override
+	void Render( SDL_Surface* dest ) override
 	{
-		if ( dialog )
-		{	
-			dialog->UpdateRect( cameraRect );
-			dialog->Render( dest, cameraRect );
+		Rect cr = g.camera->Rectangle();
+		if ( cr.Intersect( Rectangle() ) )
+		{
+			if ( dialog )
+			{	
+				dialog->UpdateRect( cr );
+				dialog->Render( dest, cr );
+				__asm nop;
+			}
 		}
-		//Surface::OnDraw( s, model, (int)pos.x, (int)pos.y );
+		Entity::Render( dest );
 	}
 
 	void MultipleChoiceEvent(MultipleChoice* mc) override

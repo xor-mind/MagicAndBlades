@@ -10,7 +10,9 @@ class Map
 {
 protected:
 	static const int tilew = 32, tileh = 32;
-	uint w,h; 
+	uint w,h;  // map width and height
+public:
+	//std::unique_ptr<Entity> camera;
 public:
 	virtual ~Map() {}
 	class Cell
@@ -27,20 +29,21 @@ private:
 	SDL_Surface * grass, * dirt, * avatar;
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
-	std::unique_ptr<Entity> camera;
 	EntityVector entities;
 	SDL_Rect clipRect;
 	SDL_Video video;
 	Game& g;
-	
+	Entity* camera;
 public:
 	HomeLand( Game& game) : g( game )
 	{ 
 		w = h = 80; 
-		camera.reset( new Entity( g ) );
+		//camera.reset( new Entity( g ) );
+		camera = g.camera = new Entity( g );
 		player.reset( new Player( g ) );
 		aggGrool.reset( new AggGrool( g ) );
 	}
+	~HomeLand() { delete g.camera; }
 
 	void Init( SDL_Surface * display )
 	{
@@ -68,7 +71,7 @@ public:
 		player->Init(avatar);
 		aggGrool->Init(avatar);
 		aggGrool->pos = Vector(32*8,32*8);
-		entities.push_back( camera.get() );
+		entities.push_back( camera );
 		entities.push_back(( (Entity*)player.get() ));
 		entities.push_back(( (Entity*)aggGrool.get() ));
 
@@ -119,37 +122,10 @@ public:
 			}
 		}
 
-		auto cr = camera->Rectangle();
-
 		// render entities
 		for(Entity* entity : entities)
 		{
-			if ( entity->model == nullptr )
-				continue; 
-			if ( camera->Rectangle().Intersect( entity->Rectangle() ) )
-			{
-				Rect c( camera->pos, camera->dim ), // c = camera rect
-								e( entity->pos, entity->dim ); // e = entity rect
-				// rect on rect clipping using deltas to capture the region showing in the cam.
-				int dcReL = c.right  - e.left,
-					deRcL = e.right  - c.left,
-					dcBeT = c.bottom - e.top,
-					deBcT = e.bottom - c.top;
-				int l = max( c.left, c.right - dcReL ),
-					r = min( c.right, c.left + deRcL ),
-					t = max( c.top, c.bottom - dcBeT ),
-					b = min( c.bottom, c.top + deBcT );
-				// translate to screen coords
-				int x = (int)(l - c.left), 
-					y = (int)(t - c.top),
-					srcX = (int)(l - e.left),
-					srcY = (int)(t - e.top),
-					srcW = (int)( r - l ),
-					srcH = (int)( b - t );
-				entity->RenderFov( cr );
-				Surface::OnDraw( screen, entity->model, x, y, srcX, srcY, srcW, srcH );
-				entity->Render( screen, cr );
-			}
+			entity->Render( screen );	
 		}
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
