@@ -2,11 +2,11 @@
 #define DIALOG_H
 
 #include "SDL_Surface.h"
+#include "Sprite.h"
 #include "SDL_Text.h"
 #include "Rectangle.h"
 #include "MaB_Types.h"
 #include <string>
-
 
 class Dialog
 {
@@ -16,9 +16,10 @@ public:
 	Text text;
 	Strs HLs;
 
+	Sprite moreButton;
 	SDL_Surface* internal_surface;
-	SDL_Surface *format_surface;	  /**< a dummy surface used to get a pixel format */
-    uint32_t internal_value;         /**< the SDL color encapsulated */
+	SDL_Surface *format_surface;	 
+    uint32_t internal_value;         
 
 	static const int width = 340, height = 100;
 public:
@@ -31,7 +32,7 @@ public:
 		Init();
 	    UpdateRect(cam );
 	}
-	~Dialog()
+	virtual ~Dialog()
 	{
 		SDL_FreeSurface(internal_surface);
 		SDL_FreeSurface(format_surface);
@@ -44,9 +45,8 @@ public:
 		rect = Rect( x, y, x + width, y + height );
 	}
 
-	void Init(  )
+	void Init()
 	{
-		//pdateRect( cam );
 		rect = Rect( 0, 0, width, height );
 		format_surface = SDL_CreateRGBSurface( SDL_SWSURFACE, 1, 1, 32, 0, 0, 0, 0);
 		internal_value = SDL_MapRGB(format_surface->format, 0, 0, 0);
@@ -55,14 +55,13 @@ public:
 		SDL_SetAlpha(internal_surface, SDL_SRCALPHA, 216);
 		text.Init( 255, 255, 255, std::string( "consola.ttf" ), 14 );		
 		
-		//msgs.push_back( Str( "Hello World" ) );
-		//msgs.push_back( Str( "There was once a cat named Tiffany and Tiffany got struck by lightning! It really fucking sucked. I hope everything works out for Tiffany in the end. She's a good girl..." ) );
-		//msgs.push_back( Str( "V vvv VvVv Vv" ) );
-
+		moreButton.surfaces.push_back( Surface::PngLoad( "./art/dlg_more_arrow.png", true ) );
+		moreButton.blinkingDelay = 444;
 	}
-
+	
 	// calculate horizontal/vertical lines
-	void CalcLines() 
+	void CalcLines() { CalcLines( msgs ); }
+	void CalcLines( Strs msgs ) 
 	{
 		Rect r = rect;
 		
@@ -77,7 +76,6 @@ public:
 		{
 			int offs = 0;
 TOP:
-			//Str output = msgs[i].substr( offs, std::string::npos );
 			int w = text.TextSize( msgs[i].substr( offs, std::string::npos ) ).first;
 
 			if ( w <= dw )
@@ -105,29 +103,55 @@ TOP:
 					goto TOP;
 			}
 		}
-	}
 
+		// set initial values for rendering
+		currentHL = 0;
+	}
+	static const int maxHL = 2; // maximum amount of lines to be rendered at a time
+	int currentHL;
+
+	void Update()
+	{
+		moreButton.Update();
+	}
 	void Render( SDL_Surface* dest, const Rect& cr )
 	{
-		//if ( !msgs.size() ) 
-		//	return;
-		// render background box
+		// transform dialog from world space to camera space
 		Rect r = rect.SubtractPosition( cr );
+		
+		// draw dialog background
 		SDL_FillRect(internal_surface, NULL, internal_value );
-		Surface::OnDraw( dest, internal_surface, r.left, r.top );
-		int dw = (int)( r.w * .9f );
-		// render text
-		            
-		int y = r.top;
-		for ( int i = 0; i < (int)HLs.size(); ++i, y += 14 )
+
+		// draw horizontal lines of text
+		int dw = (int)( r.w * .9f ); // take into account 10% for side margins
+
+		// render text            
+		int y = 0;
+		for ( int i = currentHL; i < (int)HLs.size() && i < (currentHL + maxHL);
+			++i, y += 14 )
 		{
 			int w = text.TextSize( HLs[i] ).first;   
-			int x = (int)( r.left + r.w*.05f + ( dw - w ) / 2 );
-			text.Render( dest, x, y, HLs[i] );
+			int x = (int)( r.w*.05f + ( dw - w ) / 2 );
+			text.Render( internal_surface, x, y, HLs[i] );
 		}
-	}
 
-	
+		// render "more text" button if there's more text to be displayed
+		if ( currentHL != maxHL )
+		{
+			moreButton.Render(internal_surface, ( r.w - moreButton.Width() ) / 2, 
+							 internal_surface->h - moreButton.Height() );
+		}
+		Surface::OnDraw( dest, internal_surface, r.left, r.top );
+
+	}
+};
+
+class InteractiveDialog : public Dialog
+{
+public:
+	Strs options;
+public:
+	~InteractiveDialog() {}
 };
 
 #endif

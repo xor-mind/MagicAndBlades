@@ -119,6 +119,12 @@ public:
 		}
 	}
 
+	void Logic()
+	{
+		Entity::Logic();
+		if ( dialog ) dialog->Update(); 
+	}
+
 	void Render( SDL_Surface* dest ) override
 	{
 		Rect cr = g.camera->Rectangle();
@@ -128,7 +134,6 @@ public:
 			{	
 				dialog->UpdateRect( cr );
 				dialog->Render( dest, cr );
-				__asm nop;
 			}
 		}
 		Entity::Render( dest );
@@ -140,8 +145,9 @@ public:
 		if ( dialog )
 			__asm int 13; // WTF!?
 
-		dialog = new Dialog();
+		dialog = new InteractiveDialog();
 		dialog->msgs.push_back( mc->question );
+		((InteractiveDialog*)dialog)->options = mc->answers;
 		dialog->CalcLines();
 	}
 };
