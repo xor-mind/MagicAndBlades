@@ -164,6 +164,12 @@ public:
 				default: break;
 		}
 	}
+
+	void LButtonDown(int mX, int mY)  
+	{
+		player->LButtonDown( mX, mY );
+	} 
+
 	void CleanUp()
 	{
 		SDL_FreeSurface(grass); SDL_FreeSurface(dirt);

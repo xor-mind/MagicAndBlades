@@ -26,14 +26,6 @@ public:
 	MaB() {}
 	~MaB() {}
 	
-	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override
-	{
-		((HomeLand*)g.map)->KeyDown( sym, mod, unicode );
-	}
-	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) override
-	{
-		((HomeLand*)g.map)->KeyUp( sym, mod, unicode );
-	}
 	bool Init() override
 	{
 		video.screen = screen;
@@ -82,6 +74,26 @@ public:
 		((HomeLand*)g.map)->CleanUp();
 		delete g.map;
 	}
+
+	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override
+	{
+		((HomeLand*)g.map)->KeyDown( sym, mod, unicode );
+	}
+	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) override
+	{
+		((HomeLand*)g.map)->KeyUp( sym, mod, unicode );
+	}
+	void LButtonDown(int mX, int mY) override 
+	{
+		((HomeLand*)g.map)->LButtonDown( mX, mY );
+	} 
+ 
+	void LButtonUp(int mX, int mY) override {}
+ 
+	void RButtonDown(int mX, int mY) override {}
+ 
+	void RButtonUp(int mX, int mY) override {}
+
 };
 
 class Server

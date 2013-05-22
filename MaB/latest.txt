@@ -1,3 +1,10 @@
+2013-05-21
+
+- need to change calc lines to format the text and make it more readable:
+  - Hls should cut off after a period or a space
+  - depending how much free space there is in a horizontal line, the last word can be shifted over a few spaces.
+- working on adding options to select in the dialog
+
 2013-05-16
 
 need to add the ability to answer questions in the dialog. tomorrow I'm going to have to refactor the game a bit. 

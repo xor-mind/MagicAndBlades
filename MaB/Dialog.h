@@ -11,15 +11,25 @@
 class Dialog
 {
 public:
-	Rect rect;
+	Rect rect; // contains pos and dimension in world coords
+
+	static const int maxHL = 2; // maximum amount of lines to be rendered at a time
+	int currentMsgHL;
+	int currentOptionHL;
+
 	Strs msgs;
-	Text text;
-	Strs HLs;
+	Strs msgHLs;
+	Strs options;
+	Strs optionHLs;
+
+	bool dialogRead;
 
 	Sprite moreButton;
 	SDL_Surface* internal_surface;
 	SDL_Surface *format_surface;	 
     uint32_t internal_value;         
+
+	Text text;
 
 	static const int width = 340, height = 100;
 public:
@@ -47,6 +57,7 @@ public:
 
 	void Init()
 	{
+		dialogRead = false;
 		rect = Rect( 0, 0, width, height );
 		format_surface = SDL_CreateRGBSurface( SDL_SWSURFACE, 1, 1, 32, 0, 0, 0, 0);
 		internal_value = SDL_MapRGB(format_surface->format, 0, 0, 0);
@@ -57,11 +68,17 @@ public:
 		
 		moreButton.surfaces.push_back( Surface::PngLoad( "./art/dlg_more_arrow.png", true ) );
 		moreButton.blinkingDelay = 444;
+		// set initial values for rendering
+		currentMsgHL = currentOptionHL = 0;
 	}
 	
 	// calculate horizontal/vertical lines
-	void CalcLines() { CalcLines( msgs ); }
-	void CalcLines( Strs msgs ) 
+	void CalcLines() 
+	{ 
+		CalcLines( msgs, msgHLs ); 
+		CalcLines( options, optionHLs );
+	}
+	void CalcLines( const Strs& msgs, Strs& HLs ) 
 	{
 		Rect r = rect;
 		
@@ -103,19 +120,16 @@ TOP:
 					goto TOP;
 			}
 		}
-
-		// set initial values for rendering
-		currentHL = 0;
 	}
-	static const int maxHL = 2; // maximum amount of lines to be rendered at a time
-	int currentHL;
-
 	void Update()
 	{
 		moreButton.Update();
 	}
 	void Render( SDL_Surface* dest, const Rect& cr )
 	{
+		if ( dialogRead == true ) 
+			return;
+
 		// transform dialog from world space to camera space
 		Rect r = rect.SubtractPosition( cr );
 		
@@ -125,18 +139,30 @@ TOP:
 		// draw horizontal lines of text
 		int dw = (int)( r.w * .9f ); // take into account 10% for side margins
 
-		// render text            
+		// render msg hls          
 		int y = 0;
-		for ( int i = currentHL; i < (int)HLs.size() && i < (currentHL + maxHL);
-			++i, y += 14 )
+		int linesRendered = 0;
+		for ( int i = currentMsgHL; i < (int) msgHLs.size()  && 
+			  linesRendered < maxHL; ++i, y += 14, linesRendered++ )
 		{
-			int w = text.TextSize( HLs[i] ).first;   
+			int w = text.TextSize( msgHLs[i] ).first;   
 			int x = (int)( r.w*.05f + ( dw - w ) / 2 );
-			text.Render( internal_surface, x, y, HLs[i] );
+			text.Render( internal_surface, x, y, msgHLs[i] );
+		}
+		
+		if ( linesRendered < maxHL ) 
+		{
+			for ( int i = currentOptionHL; i < (int) optionHLs.size()  && 
+				  linesRendered < maxHL; ++i, y += 14, linesRendered++ )
+			{
+				int w = text.TextSize( optionHLs[i] ).first;   
+				int x = (int)( r.w*.05f + ( dw - w ) / 2 );
+				text.Render( internal_surface, x, y, optionHLs[i] );
+			}			
 		}
 
 		// render "more text" button if there's more text to be displayed
-		if ( currentHL != maxHL )
+		if ( currentMsgHL < (int)( msgHLs.size() - maxHL ) )
 		{
 			moreButton.Render(internal_surface, ( r.w - moreButton.Width() ) / 2, 
 							 internal_surface->h - moreButton.Height() );
@@ -144,14 +170,27 @@ TOP:
 		Surface::OnDraw( dest, internal_surface, r.left, r.top );
 
 	}
-};
 
-class InteractiveDialog : public Dialog
-{
-public:
-	Strs options;
-public:
-	~InteractiveDialog() {}
+	void LButtonDown(int mX, int mY)  
+	{
+		if ( currentMsgHL < (int)( msgHLs.size() ) ) 
+		{
+			if ( optionHLs.size() == 0 && currentMsgHL == (int)( msgHLs.size() - maxHL ) )
+				dialogRead = true;
+
+			currentMsgHL++;
+			return; 
+		}
+
+		if ( currentOptionHL < (int)( optionHLs.size() - maxHL ) ) {
+			currentOptionHL++;
+			return;
+		}
+
+		if ( currentOptionHL == (int)( optionHLs.size() - maxHL ) )
+			dialogRead = true;
+		
+	} 
 };
 
 #endif

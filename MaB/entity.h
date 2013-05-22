@@ -118,11 +118,24 @@ public:
 			default: break;
 		}
 	}
-
+	void LButtonDown(int mX, int mY)  
+	{
+		if ( dialog )  {
+			dialog->LButtonDown( mX, mY );
+		}
+	} 
 	void Logic()
 	{
 		Entity::Logic();
-		if ( dialog ) dialog->Update(); 
+		if ( dialog ) 
+		{ 
+			if ( dialog->dialogRead ) {
+				delete dialog;
+				dialog = nullptr;
+			}
+			else
+				dialog->Update(); 
+		}
 	}
 
 	void Render( SDL_Surface* dest ) override
@@ -145,9 +158,9 @@ public:
 		if ( dialog )
 			__asm int 13; // WTF!?
 
-		dialog = new InteractiveDialog();
+		dialog = new Dialog();
 		dialog->msgs.push_back( mc->question );
-		((InteractiveDialog*)dialog)->options = mc->answers;
+		dialog->options = mc->answers;
 		dialog->CalcLines();
 	}
 };
