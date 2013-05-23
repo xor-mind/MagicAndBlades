@@ -1,3 +1,9 @@
+2013-05-22
+
+Text formatting ain't perfect but it's good enough  for now. 
+Now I need to add the ability to select answers and then after that,
+I'll probably improve the formatting again :D
+
 2013-05-21
 
 - need to change calc lines to format the text and make it more readable:

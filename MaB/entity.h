@@ -145,7 +145,7 @@ public:
 		{
 			if ( dialog )
 			{	
-				dialog->UpdateRect( cr );
+				//dialog->UpdateRect( cr );
 				dialog->Render( dest, cr );
 			}
 		}

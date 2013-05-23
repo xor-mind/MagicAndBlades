@@ -77,6 +77,7 @@
     <ClInclude Include="MaB.h" />
     <ClInclude Include="MaB_Types.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="MabMisc.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt" />
