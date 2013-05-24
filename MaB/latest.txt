@@ -1,3 +1,7 @@
+2013-05-23
+
+either fix vertical formatting or implement player responding to question in the context of Entity Events.
+
 2013-05-22
 
 Text formatting ain't perfect but it's good enough  for now. 

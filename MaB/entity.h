@@ -98,25 +98,35 @@ public:
 
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		switch ( sym )
+		if ( dialog )
 		{
-			case SDLK_d: vel.x = 4; break;
-			case SDLK_a: vel.x = -4; break;
-			case SDLK_w: vel.y = -4; break;
-			case SDLK_s: vel.y = 4; break;
-				default: break;
+			dialog->KeyDown( sym, mod, unicode );
 		}
+		else
+			switch ( sym )
+			{
+				case SDLK_d: vel.x = 4; break;
+				case SDLK_a: vel.x = -4; break;
+				case SDLK_w: vel.y = -4; break;
+				case SDLK_s: vel.y = 4; break;
+					default: break;
+			}
 	}
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		switch ( sym )
+		if ( dialog )
 		{
-			case SDLK_d: vel.x = 0; break;
-			case SDLK_a: vel.x = 0; break;
-			case SDLK_w: vel.y = 0; break;
-			case SDLK_s: vel.y = 0; break;
-			default: break;
+			dialog->KeyDown( sym, mod, unicode );
 		}
+		else
+			switch ( sym )
+			{
+				case SDLK_d: vel.x = 0; break;
+				case SDLK_a: vel.x = 0; break;
+				case SDLK_w: vel.y = 0; break;
+				case SDLK_s: vel.y = 0; break;
+				default: break;
+			}
 	}
 	void LButtonDown(int mX, int mY)  
 	{
@@ -124,6 +134,12 @@ public:
 			dialog->LButtonDown( mX, mY );
 		}
 	} 
+	void RButtonDown(int mX, int mY)  
+	{
+		if ( dialog )  {
+			dialog->RButtonDown( mX, mY );
+		}
+	}
 	void Logic()
 	{
 		Entity::Logic();
@@ -137,7 +153,6 @@ public:
 				dialog->Update(); 
 		}
 	}
-
 	void Render( SDL_Surface* dest ) override
 	{
 		Rect cr = g.camera->Rectangle();
@@ -151,7 +166,6 @@ public:
 		}
 		Entity::Render( dest );
 	}
-
 	void MultipleChoiceEvent(MultipleChoice* mc) override
 	{
 		// create dialog and send answer back to deamon
@@ -162,6 +176,8 @@ public:
 		dialog->msgs.push_back( mc->question );
 		dialog->options = mc->answers;
 		dialog->CalcLines();
+
+		vel = Vector(0, 0);
 	}
 };
 

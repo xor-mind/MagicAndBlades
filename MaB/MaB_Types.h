@@ -5,7 +5,7 @@
 #include <string>
 
 typedef unsigned int uint;
-
+typedef std::vector<int> Ints;
 typedef std::string Str;
 typedef std::pair<int,int> IntPair;
 

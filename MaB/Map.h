@@ -169,6 +169,10 @@ public:
 	{
 		player->LButtonDown( mX, mY );
 	} 
+	void RButtonDown(int mX, int mY)  
+	{
+		player->RButtonDown( mX, mY );
+	}
 
 	void CleanUp()
 	{

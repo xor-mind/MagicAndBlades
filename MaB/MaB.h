@@ -90,7 +90,10 @@ public:
  
 	void LButtonUp(int mX, int mY) override {}
  
-	void RButtonDown(int mX, int mY) override {}
+	void RButtonDown(int mX, int mY) override 
+	{
+		((HomeLand*)g.map)->RButtonDown( mX, mY );
+	}
  
 	void RButtonUp(int mX, int mY) override {}
 

@@ -8,15 +8,19 @@
 #include "MabMisc.h"
 #include "MaB_Types.h"
 #include <string>
+#include <algorithm>
 
 class Dialog
 {
 public:
 	Rect rect; // contains pos and dimension in world coords
 
-	static const int maxHL = 2; // maximum amount of lines to be rendered at a time
-	int currentMsgHL;
-	int currentOptionHL;
+	static const int maxHL = 4; // maximum amount of lines to be rendered at a time
+	int  currentMsgHL;
+	int  currentOptionHL;
+	
+	Ints hlOptionsForSelection;
+	int  currentSelection;
 
 	Strs msgs;
 	Strs msgHLs;
@@ -58,6 +62,7 @@ public:
 
 	void Init()
 	{
+		currentSelection = -1;
 		dialogRead = false;
 		rect = Rect( 0, 0, width, height );
 		format_surface = SDL_CreateRGBSurface( SDL_SWSURFACE, 1, 1, 32, 0, 0, 0, 0);
@@ -77,10 +82,16 @@ public:
 	void CalcLines() 
 	{ 
 		CalcLines( msgs, msgHLs ); 
-		CalcLines( options, optionHLs );
+		CalcLines( options, optionHLs, true );
 	}
-	void CalcLines( const Strs& msgs, Strs& HLs ) 
+
+	// trackInputHL - associates blocks of HLs with input. So if we had two input lines
+	// and the first input line was broken into two horrizontal messags, we would 
+	// record and 0 and 3 so now from HLs[0] and HLs[3] are the start of two input msgs. 
+	void CalcLines( const Strs& msgs, Strs& HLs, bool trackInputHL = false ) 
 	{
+		hlOptionsForSelection.clear();
+
 		Rect r = rect;
 		
 		// dialog width will be width of dialog rest with 10% for the side margins
@@ -92,6 +103,9 @@ public:
 		// Breaking strings into HLs:
 		for ( int i = 0; i < (int)msgs.size(); ++i )
 		{
+			if ( trackInputHL )
+				hlOptionsForSelection.push_back( HLs.size() );
+
 			int offs = 0;
 			// Assuming every msg ends in a period or a space.
 TOP:
@@ -130,6 +144,10 @@ TOP:
 			}
 		}
 
+		// if we have options to select, default the first selection at the first option
+		if ( hlOptionsForSelection.size() )
+			currentSelection = 0;
+		
 		PostProcessHL( HLs );
 	}
 	void PostProcessHL( Strs& HLs )
@@ -146,7 +164,7 @@ TOP:
 		int dw = (int)( rect.w * .9f );
 		int twospaces = text.TextSize( std::string("  ") ).first;
 
-		for ( int i=1; i < HLs.size(); ++i )
+		for ( int i=1; i < (int)HLs.size(); ++i )
 		{
 			if ( MabMisc::CountWordsInString( HLs[i] ) == 1 )
 			{
@@ -201,18 +219,26 @@ TOP:
 			  linesRendered < maxHL; ++i, y += 14, linesRendered++ )
 		{
 			int w = text.TextSize( msgHLs[i] ).first;   
-			int x = (int)r.w*.05f;//(int)( r.w*.05f + ( dw - w ) / 2 );
+			int x = (int)( r.w*.05f );//(int)( r.w*.05f + ( dw - w ) / 2 );
 			text.Render( internal_surface, x, y, msgHLs[i] );
 		}
 		
 		if ( linesRendered < maxHL ) 
 		{
+			// render option hls
 			for ( int i = currentOptionHL; i < (int) optionHLs.size()  && 
 				  linesRendered < maxHL; ++i, y += 14, linesRendered++ )
 			{
 				int w = text.TextSize( optionHLs[i] ).first;   
-				int x = (int)r.w*.05f;//(int)( r.w*.05f + ( dw - w ) / 2 );
+				int x = (int)( r.w*.05f );//(int)( r.w*.05f + ( dw - w ) / 2 );
 				text.Render( internal_surface, x, y, optionHLs[i] );
+
+				// render selection button
+				if ( currentSelection != -1 )
+					if ( hlOptionsForSelection[currentSelection] == i ) 
+					{
+						moreButton.Render(internal_surface, x - moreButton.Width(), y );
+					}			    
 			}			
 		}
 
@@ -238,15 +264,53 @@ TOP:
 			return; 
 		}
 
-		if ( currentOptionHL < (int)( optionHLs.size() - maxHL ) ) {
-			currentOptionHL++;
-			return;
-		}
+		//if ( currentOptionHL < (int)( optionHLs.size() - maxHL ) ) {
+		//	currentOptionHL++;
+		//	return;
+		//}
 
-		if ( currentOptionHL == (int)( optionHLs.size() - maxHL ) )
-			dialogRead = true;
+		//if ( currentOptionHL == (int)( optionHLs.size() - maxHL ) )
+		//	dialogRead = true;
 		
 	} 
+	void RButtonDown(int mX, int mY)  
+	{
+		if ( currentMsgHL < (int)( msgHLs.size() ) ) 
+			return;
+		dialogRead = true;
+	} 
+	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
+	{
+		if ( currentMsgHL < (int)( msgHLs.size() ) ) 
+			return; 
+
+		switch ( sym )
+		{
+			//case SDLK_d: break;
+			//case SDLK_a: break;
+			case SDLK_w:
+				{
+					currentOptionHL = currentSelection = max(0, currentSelection - 1); 
+				} break;
+			case SDLK_s: 
+				{
+					currentOptionHL = currentSelection = min((int)hlOptionsForSelection.size() - 1,
+												currentSelection + 1); 
+				} break;
+			default: break;
+		}
+	}
+	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
+	{
+		//switch ( sym )
+		//{
+		//	case SDLK_d:  break;
+		//	case SDLK_a:  break;
+		//	case SDLK_w:  break;
+		//	case SDLK_s:  break;
+		//	default: break;
+		//}
+	}
 };
 
 #endif
