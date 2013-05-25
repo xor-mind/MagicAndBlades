@@ -1,3 +1,7 @@
+2013-05-24
+
+add game* to entity events
+
 2013-05-23
 
 either fix vertical formatting or implement player responding to question in the context of Entity Events.

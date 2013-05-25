@@ -30,9 +30,7 @@ struct Entity : public EntityEventManager
 		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
 		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
 		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
-		Rect r = FoV;
-		r.left  -= cam.left; r.top -= cam.top;
-		r.right -= cam.left; r.bottom -= cam.top;
+		Rect r = FoV.SubtractPosition( cam );
 		video->renderPerimiter(&r);
 	}
 	void Logic()
@@ -85,22 +83,21 @@ class Player : public Entity
 public:
 
 	int health;
-	Dialog * dialog;
+	EntityEvents dialogEvents;
 
 	Player( Game& g) : Entity(g), health(100) 
 	{
 		pos = vel = Vector(0,0);
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
-		dialog = nullptr;
 	}
 	
 
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		if ( dialog )
+		if ( dialogEvents.size() )
 		{
-			dialog->KeyDown( sym, mod, unicode );
+			for( EntityEvent* e : dialogEvents ) e->KeyDown( sym, mod, unicode );
 		}
 		else
 			switch ( sym )
@@ -114,9 +111,9 @@ public:
 	}
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
-		if ( dialog )
+		if ( dialogEvents.size() )
 		{
-			dialog->KeyDown( sym, mod, unicode );
+			for( EntityEvent* e : dialogEvents ) e->KeyUp( sym, mod, unicode );
 		}
 		else
 			switch ( sym )
@@ -130,53 +127,33 @@ public:
 	}
 	void LButtonDown(int mX, int mY)  
 	{
-		if ( dialog )  {
-			dialog->LButtonDown( mX, mY );
-		}
+		for( EntityEvent* e : dialogEvents ) 
+			e->LButtonDown( mX, mY );
 	} 
 	void RButtonDown(int mX, int mY)  
 	{
-		if ( dialog )  {
-			dialog->RButtonDown( mX, mY );
-		}
+		for( EntityEvent* e : dialogEvents ) 
+			e->RButtonDown( mX, mY );
 	}
 	void Logic()
 	{
 		Entity::Logic();
-		if ( dialog ) 
-		{ 
-			if ( dialog->dialogRead ) {
-				delete dialog;
-				dialog = nullptr;
-			}
-			else
-				dialog->Update(); 
-		}
+		for( EntityEvent* e : dialogEvents ) 
+			e->Logic();
 	}
 	void Render( SDL_Surface* dest ) override
 	{
 		Rect cr = g.camera->Rectangle();
 		if ( cr.Intersect( Rectangle() ) )
 		{
-			if ( dialog )
-			{	
-				//dialog->UpdateRect( cr );
-				dialog->Render( dest, cr );
-			}
+			for( EntityEvent* e : dialogEvents ) 
+				e->Render( dest, cr );
 		}
 		Entity::Render( dest );
 	}
-	void MultipleChoiceEvent(MultipleChoice* mc) override
+	void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) override
 	{
-		// create dialog and send answer back to deamon
-		if ( dialog )
-			__asm int 13; // WTF!?
-
-		dialog = new Dialog();
-		dialog->msgs.push_back( mc->question );
-		dialog->options = mc->answers;
-		dialog->CalcLines();
-
+		dialogEvents.push_back( (EntityEvent*)mcc );
 		vel = Vector(0, 0);
 	}
 };
@@ -246,23 +223,16 @@ public:
 		// is the onlything that comes to mind?
 		
 	}
-	void MultipleChoiceEvent(MultipleChoice* mc)
+
+	void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) override
 	{
-		if ( mc == &this->mc )
+		if ( mcc->SelectedAnswer() >= 0 )
 		{
-			if ( mc->selectedAnswer == 0 )
-			{
-				// tell player, "You selfish son of a bitch, you're dead!"
-				// attack player
-				__asm nop;
-			}
-			else if ( mc->selectedAnswer == 1 )
-			{
-				// tell player, "You're loyalty is worthy of the gods themselves."
-				// give player treasure
-				// + ally player
-				__asm nop;
-			}
+			// do something
+			__asm nop; 
+			delete mcc;
 		}
+		else
+			__asm int 13;
 	}
 };

@@ -212,8 +212,9 @@ TOP:
 		// draw horizontal lines of text
 		int dw = (int)( r.w * .9f ); // take into account 10% for side margins
 
-		// render msg hls          
-		int y = 0;
+		// render msg hls     
+		int textHeight = text.TextSize( "I" ).second;
+		int y = (r.h - 4*textHeight)/2; // center text horizontally
 		int linesRendered = 0;
 		for ( int i = currentMsgHL; i < (int) msgHLs.size()  && 
 			  linesRendered < maxHL; ++i, y += 14, linesRendered++ )

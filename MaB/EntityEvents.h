@@ -2,15 +2,23 @@
 #define ENTITYEVENTS_H
 
 #include "MaB_Types.h"
+#include "Dialog.h"
 
-enum EntityEventType { ATTACK, MULTIPLE_CHOICE, ENTER_FOV };
+enum EntityEventType { ATTACK, MULTIPLE_CHOICE_CHUNK, ENTER_FOV };
 
 struct EntityEvent {
 	EntityEventType  type;
+	virtual void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {}
+	virtual void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {}
+	virtual void LButtonDown(int mX, int mY) {}
+	virtual void RButtonDown(int mX, int mY) {}
+	virtual void Logic() {}
+	virtual void Render( SDL_Surface* dest, const Rect& cr ) {}
 };
 typedef std::list<EntityEvent*> EntityEventList;
+typedef std::vector<EntityEvent*> EntityEvents;
 
-class MultipleChoice;
+class MultipleChoiceChunk;
 
 class EntityEventManager
 {
@@ -29,40 +37,72 @@ public:
 
 		switch(Event->type) 
 		{
-			case MULTIPLE_CHOICE: 
+			case MULTIPLE_CHOICE_CHUNK: 
 			{
-				MultipleChoiceEvent((MultipleChoice*)Event);		
+				MultipleChoiceChunkEvent((MultipleChoiceChunk*)Event);		
 			} break;
 		}	
 	}
 
-	virtual void MultipleChoiceEvent(MultipleChoice* mc)
-	{
-	}
+	virtual void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) {}
 };
 
-class MultipleChoice : public EntityEvent
+class MultipleChoiceChunk: public EntityEvent
+{
+	Dialog* dialog;
+	EntityEventManager* from;
+public:
+	MultipleChoiceChunk(EntityEventManager* from, Str& question, Strs& answers) 
+		: from(from) 
+	{
+		type = MULTIPLE_CHOICE_CHUNK;
+		dialog = new Dialog();
+		dialog->msgs.push_back( question );
+		dialog->options = answers;
+		dialog->CalcLines();
+	}
+	~MultipleChoiceChunk()
+	{
+		delete dialog;
+	}
+	
+	void Logic() override
+	{
+		if ( dialog ) 
+		{ 
+			if ( dialog->dialogRead ) {
+				from->entityEvents.push_back( this );
+			}
+			else
+				dialog->Update(); 
+		}
+	}
+	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override { dialog->KeyDown( sym, mod, unicode ); }
+	void LButtonDown(int mX, int mY) override { dialog->LButtonDown( mX, mY ); }
+	void RButtonDown(int mX, int mY) override { dialog->RButtonDown( mX, mY ); }
+	void Render( SDL_Surface* dest, const Rect& cr ) override { dialog->Render( dest, cr ); }
+	int SelectedAnswer() { return dialog->currentSelection; }
+};
+
+class MultipleChoice
 {
 public:
 	Str question;
 	Strs answers;
-	int selectedAnswer;
+	
 	std::list< EntityEventManager* > playersQuestioned;
 	EntityEventManager* questionner;
 public:
-	MultipleChoice() { type = MULTIPLE_CHOICE; }
+	MultipleChoice() {}
 	MultipleChoice(EntityEventManager* questionner, Str& question, const Strs& answers)
-		: selectedAnswer(-1)
-	{
-		type = MULTIPLE_CHOICE;
-		this->question = question; this->answers = answers;
-		this->questionner = questionner;
-	}
-	void Init(EntityEventManager* questionner, Str& question, const Strs& answers)
 	{
 		this->questionner = questionner; this->question = question; this->answers = answers;
 	}
 	
+	void Init(EntityEventManager* questionner, Str& question, const Strs& answers)
+	{
+		this->questionner = questionner; this->question = question; this->answers = answers;
+	}
 	void AskPlayer(EntityEventManager* player)
 	{
 		// if ( player == playerCharacter )
@@ -72,7 +112,9 @@ public:
 		if ( std::find( playersQuestioned.begin(), playersQuestioned.end(), player) == 
 			playersQuestioned.end() )
 		{
-			player->entityEvents.push_back(this); // adds a dialog to the player render list
+			MultipleChoiceChunk* mcc 
+				= new MultipleChoiceChunk(questionner, question, answers);
+			player->entityEvents.push_back(mcc); // adds a dialog to the player render list
 			playersQuestioned.push_back(player);
 		}
 	}
