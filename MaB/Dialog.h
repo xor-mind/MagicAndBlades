@@ -129,7 +129,8 @@ TOP:
 					// make sure we breaking our HLs off at spaces or periods.
 					while ( 1 ) { 
 						substr = msgs[i].substr( offs, (int)( r * (msgs[i].length() - offs) - n++ ) );
-						if ( substr.back() == ' ' || substr.back() == '.')
+						char c = substr.back();
+						if ( c == ' ' || c == '.' || c == '?' )
 							break;
 					}
 
@@ -187,7 +188,10 @@ TOP:
 				if ( s.back() == ' ') 
 					s.pop_back(); // don't want spaces at the end of my HL.
 				size_t pos = s.rfind(' ');
-				s.insert(pos, " ");
+				if ( pos != std::string::npos )
+					s.insert(pos, " ");
+				else
+					s.insert(0, " ");
 			}
 		}
 	}

@@ -1,3 +1,8 @@
+2013-05-25
+
+fix formatting for dialogs with 3 or less horiontal lines.
+implement npc attacking/combat
+
 2013-05-24
 
 add game* to entity events

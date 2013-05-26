@@ -7,7 +7,10 @@
 enum EntityEventType { ATTACK, MULTIPLE_CHOICE_CHUNK, ENTER_FOV };
 
 struct EntityEvent {
+	bool isComplete;
+	EntityEvent() : isComplete( false ) { }
 	EntityEventType  type;
+	bool Complete() { return isComplete; } 
 	virtual void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {}
 	virtual void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {}
 	virtual void LButtonDown(int mX, int mY) {}
@@ -19,6 +22,7 @@ typedef std::list<EntityEvent*> EntityEventList;
 typedef std::vector<EntityEvent*> EntityEvents;
 
 class MultipleChoiceChunk;
+class Attack;
 
 class EntityEventManager
 {
@@ -45,6 +49,15 @@ public:
 	}
 
 	virtual void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) {}
+};
+
+class Attack : public EntityEvent
+{
+public:
+	Attack( )
+	{
+		type = ATTACK;
+	}
 };
 
 class MultipleChoiceChunk: public EntityEvent

@@ -1,7 +1,8 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "Entity.h"
+#include "Player.h"
+#include "Agggrool.h"
 
 #include <algorithm>
 #include <memory>
