@@ -17,14 +17,20 @@ using namespace boost::assign; // bring 'operator+=()' into scope
 
 struct Entity : public EntityEventManager
 {
+	
 	SDL_Video* video;
 	Rect FoV;
 	Vector fovDim;
 	SDL_Surface * model;
 	Game& g;
+	Vector pos, dim, vel;
+	float speed;
+
+public:
+
 	Entity( Game& game ) : model(nullptr), g( game ) {}
 	virtual ~Entity() {}
-	Vector pos, dim, vel;
+
 	Rect Rectangle() { return Rect( pos, dim ); }
 
 	void RenderFov( Rect & cam)
@@ -63,6 +69,24 @@ struct Entity : public EntityEventManager
 		model = s;
 		return true;
 	}
+
+	void MoveToPlayer( Entity* target )
+	{
+		vel = Vector( 0, 0 );
+
+		int dx = (int)( pos.x - target->pos.x ),
+			dy = (int)( pos.y - target->pos.y );
+		int dist_x = abs( dx ), dist_y = abs( dy );
+
+		if ( dist_x > dist_y )
+		{
+			vel.x = -sgn( dx ) * speed;
+		}
+		else
+		{
+			vel.y = -sgn( dy ) * speed;
+		}
+	}
 };
 
 typedef std::vector<Entity*> EntityVector;
@@ -70,11 +94,16 @@ typedef std::vector<Entity*> EntityVector;
 class Monster : public Entity
 {
 public:
-	Monster(Game& g) : Entity(g) {}
+	Entity* attackPlayer;
+
+	Monster(Game& g) : Entity(g) { attackPlayer = nullptr; }
 	virtual ~Monster() {}
 
 	void Logic()
 	{
+		if ( attackPlayer )
+			MoveToPlayer( attackPlayer );
+
 		Entity::Logic();
 	}
 

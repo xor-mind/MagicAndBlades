@@ -6,11 +6,14 @@
 class AggGrool : public Monster
 {
 public:
+	
 	int health;
 	MultipleChoice mc; 
 	AggGrool( Game& g) : Monster(g), health(100) 
 	{
+		
 		pos = vel = Vector(0,0);
+		speed = 1.f;
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
 	}
@@ -40,31 +43,6 @@ public:
 			}
 		}
 	}
-	void SingleQuestion(Player* p)
-	{
-		static Str intro = "You've come to a forbidden zone, answer me these three questions and I may let you live.";
-
-		//TellPlayer(intro);
-		
-
-		//if ( playerChoice.IsAnswered() )
-		//{
-		//	if ( playerChoice.Answer() == 1 )
-		//	{
-		//		Attack(p);
-		//	}
-		//	else
-		//	{
-		//		GivePlayer(p,crown);
-		//		SingleQuestion.Complete(true);
-		//	}
-		//}
-
-		// some how I need to implement waiting.. like the daemon is
-		// waiting for the players response. different threads
-		// is the onlything that comes to mind?
-		
-	}
 
 	void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) override
 	{
@@ -77,7 +55,8 @@ public:
 			if ( s == 1 )
 			{
 				// attack the player
-				//entityEvents.push_back(
+				// attack.Player( mcc->to );
+				attackPlayer = (Entity*)mcc->to;
 			}
 		}
 		else

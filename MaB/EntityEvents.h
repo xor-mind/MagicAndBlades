@@ -63,10 +63,11 @@ public:
 class MultipleChoiceChunk: public EntityEvent
 {
 	Dialog* dialog;
-	EntityEventManager* from;
 public:
-	MultipleChoiceChunk(EntityEventManager* from, Str& question, Strs& answers) 
-		: from(from) 
+	EntityEventManager* from, *to;
+public:
+	MultipleChoiceChunk(EntityEventManager* from, EntityEventManager* to, Str& question, Strs& answers) 
+		: from(from), to(to) 
 	{
 		type = MULTIPLE_CHOICE_CHUNK;
 		dialog = new Dialog();
@@ -126,7 +127,7 @@ public:
 			playersQuestioned.end() )
 		{
 			MultipleChoiceChunk* mcc 
-				= new MultipleChoiceChunk(questionner, question, answers);
+				= new MultipleChoiceChunk(questionner, player, question, answers);
 			player->entityEvents.push_back(mcc); // adds a dialog to the player render list
 			playersQuestioned.push_back(player);
 		}

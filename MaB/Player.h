@@ -13,6 +13,7 @@ public:
 	Player( Game& g) : Entity(g), health(100) 
 	{
 		pos = vel = Vector(0,0);
+		speed = 4.f;
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
 	}
@@ -27,10 +28,10 @@ public:
 		else
 			switch ( sym )
 			{
-				case SDLK_d: vel.x = 4; break;
-				case SDLK_a: vel.x = -4; break;
-				case SDLK_w: vel.y = -4; break;
-				case SDLK_s: vel.y = 4; break;
+				case SDLK_d: vel.x = speed; break;
+				case SDLK_a: vel.x = -speed; break;
+				case SDLK_w: vel.y = -speed; break;
+				case SDLK_s: vel.y = speed; break;
 					default: break;
 			}
 	}
