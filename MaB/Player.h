@@ -12,7 +12,6 @@ public:
 	Player( Game& g) : Entity(g)
 	{
 		Strength(18);
-		health = 5;
 		pos = vel = Vector(0,0);
 		speed = 4.f;
 		dim = Vector(32,32);

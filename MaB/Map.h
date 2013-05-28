@@ -13,7 +13,18 @@ protected:
 	static const int tilew = 32, tileh = 32;
 	uint w,h;  // map width and height
 public:
-	//std::unique_ptr<Entity> camera;
+	struct Tile
+	{
+		Tile( SDL_Surface* data, int propId ) : data(data), propId(propId) {}
+		SDL_Surface* data;
+		int propId;
+
+		SDL_Surface* Render( SDL_Surface* dest, int x, int y ) 
+		{
+			Surface::OnDraw( dest, data, x, y, propId*tilew, 0, tilew, tileh );   
+			return nullptr; 
+		}
+	};
 public:
 	virtual ~Map() {}
 	class Cell
@@ -21,13 +32,13 @@ public:
 	public:
 	};
 
-	std::vector<SDL_Surface * > data;
+	std::vector<Tile> data;
 };
 
 class HomeLand : public Map
 {
 private:
-	SDL_Surface * grass, * dirt, * avatar, *healthBar;
+	SDL_Surface * grass, * dirt, * avatar, *healthBar, *terrainProps;
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
 	EntityVector entities;
@@ -57,17 +68,26 @@ public:
 		video.clipRect = clipRect;
 		SDL_SetClipRect(display, &clipRect);
 
-		grass = Surface::BmpLoad( "./art/grass01.bmp" );
-		dirt  = Surface::BmpLoad( "./art/grass02.bmp" );
+		grass        = Surface::BmpLoad( "./art/grass01.bmp" );
+		dirt         = Surface::BmpLoad( "./art/grass02.bmp" );
+		terrainProps = Surface::BmpLoad( "./art/terrainProps.bmp" );
 
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
 			{
-				if ( y % 2 != 0 )	
-					data.push_back( x % 2 != 0 ? dirt : grass ); 
+				if ( rand()%10 < 2 )
+				{
+					data.push_back( Tile( terrainProps, rand()%4 ) );
+				}
 				else 
-					data.push_back( x % 2 != 0 ? grass : dirt );
+				{
+					if ( y % 2 != 0 )	
+						data.push_back( x % 2 != 0 ? Tile(dirt, 0) : Tile(grass, 0) ); 
+					else 
+						data.push_back( x % 2 != 0 ? Tile(grass, 0) : Tile(dirt, 0));
+				}
 			}
+
 		avatar = Surface::BmpLoad("./art/avatar01.bmp");
 		healthBar = Surface::BmpLoad("./art/healthBar.bmp");
 		player->Init(avatar, healthBar);
@@ -120,7 +140,7 @@ public:
 				int offs_y = pos_y % tileh,
 					render_y = (int)( pos_y - camera->pos.y - offs_y ),
 					render_x = (int)( pos_x - camera->pos.x - offs_x );
-				Surface::OnDraw( screen, data[tile], render_x, render_y);                                                            
+				data[tile].Render(screen, render_x, render_y);                                                            
 			}
 		}
 
