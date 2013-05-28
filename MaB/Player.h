@@ -7,18 +7,18 @@ class Player : public Entity
 {
 public:
 
-	int health;
 	EntityEventList dialogEvents;
 
-	Player( Game& g) : Entity(g), health(100) 
+	Player( Game& g) : Entity(g)
 	{
+		Strength(18);
+		health = 5;
 		pos = vel = Vector(0,0);
 		speed = 4.f;
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
 	}
 	
-
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
 		if ( dialogEvents.size() )

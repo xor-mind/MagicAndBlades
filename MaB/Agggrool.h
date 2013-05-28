@@ -1,7 +1,7 @@
 #ifndef AGGGROOL_H
 #define AGGGROOL_H
 
-#include "Entity.h"
+#include "Monster.h"
 
 class AggGrool : public Monster
 {
@@ -18,8 +18,9 @@ public:
 		fovDim = Vector(100, 100);
 	}
 
-	bool Init(SDL_Surface* s) override
+	bool Init(SDL_Surface* model, SDL_Surface* healthBar ) override
 	{
+		Strength( 100 );
 		Immortal(true);
 		InstaKill(true);
 		//Aggro(new AttackSecond());
@@ -30,7 +31,7 @@ public:
 				   "No.";
 		mc.Init(this, question, answers);
 
-		return Entity::Init(s);
+		return Entity::Init( model, healthBar );
 	}
 
 	void PlayerEntersFoV(Player* p)
@@ -55,8 +56,7 @@ public:
 			if ( s == 1 )
 			{
 				// attack the player
-				// attack.Player( mcc->to );
-				attackPlayer = (Entity*)mcc->to;
+				attack.target = (Entity*)mcc->to;
 			}
 		}
 		else

@@ -51,14 +51,7 @@ public:
 	virtual void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) {}
 };
 
-class Attack : public EntityEvent
-{
-public:
-	Attack( )
-	{
-		type = ATTACK;
-	}
-};
+
 
 class MultipleChoiceChunk: public EntityEvent
 {

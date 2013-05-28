@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Agggrool.h" />
+    <ClInclude Include="Attack.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityEvents.h" />
@@ -79,6 +80,7 @@
     <ClInclude Include="MaB_Types.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MabMisc.h" />
+    <ClInclude Include="Monster.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>

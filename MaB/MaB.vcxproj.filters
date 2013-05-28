@@ -44,9 +44,6 @@
     <ClInclude Include="Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MabMisc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,6 +51,15 @@
       <Filter>Header Files\entities</Filter>
     </ClInclude>
     <ClInclude Include="Agggrool.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Attack.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
   </ItemGroup>

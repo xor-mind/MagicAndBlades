@@ -27,7 +27,7 @@ public:
 class HomeLand : public Map
 {
 private:
-	SDL_Surface * grass, * dirt, * avatar;
+	SDL_Surface * grass, * dirt, * avatar, *healthBar;
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
 	EntityVector entities;
@@ -69,8 +69,9 @@ public:
 					data.push_back( x % 2 != 0 ? grass : dirt );
 			}
 		avatar = Surface::BmpLoad("./art/avatar01.bmp");
-		player->Init(avatar);
-		aggGrool->Init(avatar);
+		healthBar = Surface::BmpLoad("./art/healthBar.bmp");
+		player->Init(avatar, healthBar);
+		aggGrool->Init(avatar, healthBar);
 		aggGrool->pos = Vector(32*8,32*8);
 		entities.push_back( camera );
 		entities.push_back(( (Entity*)player.get() ));
@@ -178,7 +179,7 @@ public:
 	void CleanUp()
 	{
 		SDL_FreeSurface(grass); SDL_FreeSurface(dirt);
-		SDL_FreeSurface(avatar);
+		SDL_FreeSurface(avatar); SDL_FreeSurface( healthBar );
 	}
 };
 

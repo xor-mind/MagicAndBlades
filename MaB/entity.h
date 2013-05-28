@@ -17,12 +17,14 @@ using namespace boost::assign; // bring 'operator+=()' into scope
 
 struct Entity : public EntityEventManager
 {
-	
+	Game& g;
 	SDL_Video* video;
 	Rect FoV;
 	Vector fovDim;
-	SDL_Surface * model;
-	Game& g;
+	SDL_Surface * model, * healthBar;
+	
+	// entity properties
+	int str, health;
 	Vector pos, dim, vel;
 	float speed;
 
@@ -33,6 +35,12 @@ public:
 
 	Rect Rectangle() { return Rect( pos, dim ); }
 
+	virtual bool Init(SDL_Surface* model, SDL_Surface* healthBar)
+	{
+		this->model = model;
+		this->healthBar = healthBar;
+		return true;
+	}
 	void RenderFov( Rect & cam)
 	{
 		FoV.left = (int)( pos.x + dim.x/2 - fovDim.x );
@@ -58,18 +66,11 @@ public:
 				render_y = (int)( pos.y - cr.top );
 			RenderFov( cr );
 			Surface::OnDraw( dest, model, render_x, render_y );
+			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
+			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
 		}
 	}
-	//void PushEvent(EntityEvent* Event) 
-	//{
-	//	entityEvents.push_back( Event );
-	//}
-	virtual bool Init(SDL_Surface* s)
-	{
-		model = s;
-		return true;
-	}
-
+	
 	void MoveToPlayer( Entity* target )
 	{
 		vel = Vector( 0, 0 );
@@ -87,35 +88,11 @@ public:
 			vel.y = -sgn( dy ) * speed;
 		}
 	}
+
+	void Strength( int str ) { this->str = str; health = str; }
 };
 
 typedef std::vector<Entity*> EntityVector;
-
-class Monster : public Entity
-{
-public:
-	Entity* attackPlayer;
-
-	Monster(Game& g) : Entity(g) { attackPlayer = nullptr; }
-	virtual ~Monster() {}
-
-	void Logic()
-	{
-		if ( attackPlayer )
-			MoveToPlayer( attackPlayer );
-
-		Entity::Logic();
-	}
-
-	// some properties of monsters
-
-
-	void Immortal( bool b ) { immortal = b; }
-	void InstaKill( bool b ) { instaKill = b; }
-
-	bool immortal;
-	bool instaKill;
-};
 
 #endif
 
