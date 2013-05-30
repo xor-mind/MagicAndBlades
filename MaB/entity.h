@@ -43,10 +43,6 @@ public:
 	}
 	void RenderFov( Rect & cam)
 	{
-		FoV.left = (int)( pos.x + dim.x/2 - fovDim.x );
-		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
-		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
-		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
 		Rect r = FoV.SubtractPosition( cam );
 		video->renderPerimiter(&r);
 	}
@@ -54,6 +50,10 @@ public:
 	{
 		ProcessEvent();
 		pos += vel;
+		FoV.left = (int)( pos.x + dim.x/2 - fovDim.x );
+		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
+		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
+		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
 	}
 	virtual void Render( SDL_Surface* dest )
 	{
@@ -64,7 +64,7 @@ public:
 		{
 			int render_x = (int)( pos.x - cr.left ),
 				render_y = (int)( pos.y - cr.top );
-			RenderFov( cr );
+			//RenderFov( cr );
 			Surface::OnDraw( dest, model, render_x, render_y );
 			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
 			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );

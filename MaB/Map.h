@@ -75,7 +75,7 @@ public:
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
 			{
-				if ( rand()%10 < 2 )
+				if ( ( rand()%10 < 2 ) && ( (x!=0) || (y!=0) ) )
 				{
 					data.push_back( Tile( terrainProps, rand()%4 ) );
 				}
@@ -93,7 +93,7 @@ public:
 		player->Init(avatar, healthBar);
 		aggGrool->Init(avatar, healthBar);
 		aggGrool->pos = Vector(32*8,32*8);
-		entities.push_back( camera );
+		//entities.push_back( camera );
 		entities.push_back(( (Entity*)player.get() ));
 		entities.push_back(( (Entity*)aggGrool.get() ));
 
@@ -102,16 +102,102 @@ public:
 			e->video = &video;
 		}
 	}
+	void Collision( Entity* e )
+	{
+		// used by the collision logic to record if the collision has changed the
+		// entity's position.
+
+		bool xPosChanged = ( e->vel.x == 0 ? true : false ),
+			 yPosChanged = ( e->vel.y == 0 ? true : false );
+		
+		if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
+			return;
+
+		static int tiles[4];
+		int tileCount = 0;
+		int pos_x = (int)e->pos.x, pos_y = (int)e->pos.y;
+		int offs_x =  pos_x % tilew, offs_y =  pos_y % tileh;
+
+		//if ( e->vel.x < 0 )
+		//{
+		//	int tile = pos_y / tileh * Map::w + pos_x / tilew;
+		//	
+		//	if ( data[tile].data == terrainProps )
+		//	{
+		//		e->pos.x += tilew - offs_x;
+		//	}
+		//	else if ( offs_y > 0 )
+		//	{
+		//		if ( data[tile + Map::w].data == terrainProps )
+		//		{
+		//			e->pos.x += tilew - offs_x;
+		//		}
+		//	}
+		//}
+		tiles[ tileCount++ ] = pos_y / tileh * Map::w + pos_x / tilew;
+
+		if ( offs_x > 0 )
+			tiles[tileCount++] = tiles[0] + 1;
+		if ( offs_y > 0 )
+			tiles[tileCount++] = tiles[0] + Map::w;
+		if( (offs_x > 0) && (offs_y > 0) )
+			tiles[tileCount++] = tiles[0] + Map::w + 1;
+
+		
+		for ( int i = 0; i < tileCount; ++i )
+		{
+			if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
+				return; 
+
+			if ( data[tiles[i]].data == terrainProps )
+			{
+				if ( !xPosChanged ) {
+					if ( e->vel.x > 0 )
+					{
+						// we're moving right
+						e->pos.x -= offs_x;
+						xPosChanged = true;
+					}
+					else if ( e->vel.x < 0 )
+					{
+						// we're moving left
+						e->pos.x += tilew - offs_x;
+						xPosChanged = true;
+					}
+				}
+
+				if ( !yPosChanged )
+				{
+					if ( e->vel.y > 0 )
+					{
+						// we're moving down
+						e->pos.y -= offs_y;
+						yPosChanged = true;
+					}
+					else if ( e->vel.y < 0 )
+					{
+						// we're moving up
+						e->pos.y += tileh - offs_y;
+						yPosChanged = true;
+					}
+				}
+			}
+		}
+	}
+
 	void Logic()
 	{
 		player->Logic();
 		aggGrool->Logic();
 
 		camera->pos += camera->vel;
+
 		for(Entity* e : entities)
 		{
 			Bound(*e);
+			Collision( e );
 		}
+		Bound( *camera );
 
 		if ( aggGrool->FoV.Intersect(player->Rectangle()) )
 		{

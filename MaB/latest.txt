@@ -1,3 +1,12 @@
+2013-05-29
+rendering the field of view takes away like 25 fps! dammmmmnn
+
+2013-05-28
+
+I need to probably put in randomly wandering sheep next. then put in collision detection. soon I'll probably have to implement A*
+so mobs can get around no-go tiles.. 
+I'm sure it will be easy to implement or maybe that other path finding, jump search? was that what it was called..
+
 2013-05-25
 
 fix formatting for dialogs with 3 or less horiontal lines.
