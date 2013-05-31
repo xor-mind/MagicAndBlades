@@ -15,9 +15,15 @@ protected:
 public:
 	struct Tile
 	{
-		Tile( SDL_Surface* data, int propId ) : data(data), propId(propId) {}
+		Tile( SDL_Surface* data, int propId, int pos_x, int pos_y ) 
+			: data(data), propId(propId) 
+		{
+			r = Rect( pos_x, pos_y, pos_x + tilew, pos_y + tileh );
+		}
 		SDL_Surface* data;
 		int propId;
+		//int pos_x, pos_y;
+		Rect r;
 
 		SDL_Surface* Render( SDL_Surface* dest, int x, int y ) 
 		{
@@ -75,16 +81,18 @@ public:
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
 			{
+				int pos_x = x*tilew, pos_y = y*tileh;
+
 				if ( ( rand()%10 < 2 ) && ( (x!=0) || (y!=0) ) )
 				{
-					data.push_back( Tile( terrainProps, rand()%4 ) );
+					data.push_back( Tile( terrainProps, rand()%4, pos_x, pos_y ) );
 				}
 				else 
 				{
 					if ( y % 2 != 0 )	
-						data.push_back( x % 2 != 0 ? Tile(dirt, 0) : Tile(grass, 0) ); 
+						data.push_back( x % 2 != 0 ? Tile(dirt, 0, pos_x, pos_y) : Tile(grass, 0, pos_x, pos_y) ); 
 					else 
-						data.push_back( x % 2 != 0 ? Tile(grass, 0) : Tile(dirt, 0));
+						data.push_back( x % 2 != 0 ? Tile(grass, 0, pos_x, pos_y) : Tile(dirt, 0, pos_x, pos_y));
 				}
 			}
 
@@ -102,38 +110,14 @@ public:
 			e->video = &video;
 		}
 	}
-	void Collision( Entity* e )
+	bool EntityCollision( Entity* e, int & offs_x, int & offs_y )
 	{
-		// used by the collision logic to record if the collision has changed the
-		// entity's position.
-
-		bool xPosChanged = ( e->vel.x == 0 ? true : false ),
-			 yPosChanged = ( e->vel.y == 0 ? true : false );
-		
-		if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
-			return;
-
 		static int tiles[4];
 		int tileCount = 0;
 		int pos_x = (int)e->pos.x, pos_y = (int)e->pos.y;
-		int offs_x =  pos_x % tilew, offs_y =  pos_y % tileh;
+		offs_x =  pos_x % tilew, offs_y =  pos_y % tileh;
 
-		//if ( e->vel.x < 0 )
-		//{
-		//	int tile = pos_y / tileh * Map::w + pos_x / tilew;
-		//	
-		//	if ( data[tile].data == terrainProps )
-		//	{
-		//		e->pos.x += tilew - offs_x;
-		//	}
-		//	else if ( offs_y > 0 )
-		//	{
-		//		if ( data[tile + Map::w].data == terrainProps )
-		//		{
-		//			e->pos.x += tilew - offs_x;
-		//		}
-		//	}
-		//}
+		// collect all the tile's we're intersecting with
 		tiles[ tileCount++ ] = pos_y / tileh * Map::w + pos_x / tilew;
 
 		if ( offs_x > 0 )
@@ -143,45 +127,55 @@ public:
 		if( (offs_x > 0) && (offs_y > 0) )
 			tiles[tileCount++] = tiles[0] + Map::w + 1;
 
-		
+		// see if we're intersecting with any no go tiles and work out the right collision response
 		for ( int i = 0; i < tileCount; ++i )
 		{
-			if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
-				return; 
-
 			if ( data[tiles[i]].data == terrainProps )
-			{
-				if ( !xPosChanged ) {
-					if ( e->vel.x > 0 )
-					{
-						// we're moving right
-						e->pos.x -= offs_x;
-						xPosChanged = true;
-					}
-					else if ( e->vel.x < 0 )
-					{
-						// we're moving left
-						e->pos.x += tilew - offs_x;
-						xPosChanged = true;
-					}
-				}
+				return true;
+		}
 
-				if ( !yPosChanged )
-				{
-					if ( e->vel.y > 0 )
-					{
-						// we're moving down
-						e->pos.y -= offs_y;
-						yPosChanged = true;
-					}
-					else if ( e->vel.y < 0 )
-					{
-						// we're moving up
-						e->pos.y += tileh - offs_y;
-						yPosChanged = true;
-					}
-				}
+		return false;
+	}
+
+	void Collision( Entity* e )
+	{
+		// used by the collision logic to record if the collision has changed the
+		// entity's position.
+
+		bool xPosChanged = ( e->vel.x == 0 ? true : false ),
+			 yPosChanged = ( e->vel.y == 0 ? true : false );
+		
+		if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
+			return;	
+
+		int offs_x, offs_y;
+		bool collision = EntityCollision( e, offs_x, offs_y );
+
+		if ( collision )
+		{
+			// first change x position
+			if ( !xPosChanged  )
+			{
+				int tempPos_x = e->pos.x;
+				e->pos.x = e->pos.x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
+				collision = EntityCollision( e, offs_x, offs_y );
+				if ( collision )
+					e->pos.x = tempPos_x;
+				else
+					return;
 			}
+
+			// second, change y position
+			//int tempPos_y = e->pos.y;
+			e->pos.y = e->pos.y - ( e->vel.y > 0 ? offs_y : -(tileh - offs_y) );
+			collision = EntityCollision( e, offs_x, offs_y );
+			if ( collision )
+			{
+				e->pos.x = e->pos.x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
+				return;
+			}
+			else
+				return;
 		}
 	}
 
