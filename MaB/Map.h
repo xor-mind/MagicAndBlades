@@ -12,33 +12,116 @@ class Map
 protected:
 	static const int tilew = 32, tileh = 32;
 	uint w,h;  // map width and height
+
 public:
 	struct Tile
 	{
-		Tile( SDL_Surface* data, int propId, int pos_x, int pos_y ) 
-			: data(data), propId(propId) 
-		{
-			r = Rect( pos_x, pos_y, pos_x + tilew, pos_y + tileh );
-		}
+		enum typeType { eNormal, eNoGo };
+		typeType type;
+		Tile( SDL_Surface* data, int propId ) 
+			: data(data), propId(propId) { type = eNormal; }
+		Tile( SDL_Surface* data, int propId, typeType type ) 
+			: data(data), propId(propId), type( type ) {}
 		SDL_Surface* data;
 		int propId;
 		//int pos_x, pos_y;
 		Rect r;
 
+		bool NoGo() { return ( type == typeType::eNoGo ? true : false ); }
 		SDL_Surface* Render( SDL_Surface* dest, int x, int y ) 
 		{
 			Surface::OnDraw( dest, data, x, y, propId*tilew, 0, tilew, tileh );   
 			return nullptr; 
 		}
 	};
+	std::vector<Tile> data;
+
 public:
 	virtual ~Map() {}
-	class Cell
-	{ 
-	public:
-	};
 
-	std::vector<Tile> data;
+	// returns true if an entity is standing on any no go tiles
+	bool EntityCollision( Entity* e )
+	{
+		static int tiles[4];
+		int tileCount = 0;
+		int pos_x = (int)e->pos.x, pos_y = (int)e->pos.y;
+		int offs_x =  pos_x % tilew, offs_y =  pos_y % tileh;
+
+		// collect all the tile's we're intersecting with
+		tiles[ tileCount++ ] = pos_y / tileh * Map::w + pos_x / tilew;
+
+		if ( offs_x > 0 )
+			tiles[tileCount++] = tiles[0] + 1;
+		if ( offs_y > 0 )
+			tiles[tileCount++] = tiles[0] + Map::w;
+		if( (offs_x > 0) && (offs_y > 0) )
+			tiles[tileCount++] = tiles[0] + Map::w + 1;
+
+		// see if we're intersecting with any no go tiles and work out the right collision response
+		for ( int i = 0; i < tileCount; ++i )
+		{
+			if ( data[tiles[i]].NoGo() )
+				return true;
+		}
+
+		return false;
+	}
+
+	void Collision( Entity* e )
+	{
+		// how collision detection works.
+		// After an entity has moved,
+		// check if there's any collisions.
+		// if so, revert one component ( x component ) of the position
+		// again check for any collisions.
+		// if no, then place the entity at the edge of the offending tile,
+		// which is gleaned from the position component changed.
+		//
+		// if there is a collision, negate the reversion and test the other
+		// position component (y). if there's still a collision after reverting 
+		// both components by themselves, then we know there's a collision in both
+		// dimensions and figure out where to place the object in the x/y plane.
+
+		bool xPosChanged = ( e->vel.x == 0 ? true : false ),
+			 yPosChanged = ( e->vel.y == 0 ? true : false );
+		
+		if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
+			return;	
+
+		bool collision = EntityCollision( e );
+
+		if ( collision )
+		{
+			int offs_x =  (int)e->pos.x % tilew, offs_y =  (int)e->pos.y % tileh;
+
+			// first change x position
+			if ( !xPosChanged  )
+			{
+				int tempPos_x = (int)e->pos.x;
+				e->pos.x = e->pos.x - e->vel.x;
+				collision = EntityCollision( e );
+				if ( collision )
+					e->pos.x = (float)tempPos_x;
+				else
+				{
+					e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) ) );
+					return;
+				}
+			}
+
+			// second, change y position
+			int tempPos_y = (int)e->pos.y;
+			e->pos.y = e->pos.y - e->vel.y; 
+			collision = EntityCollision( e );
+			if ( collision )
+			{
+				e->pos.x = e->pos.x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
+				return;
+			}
+			else
+				return;
+		}
+	}
 };
 
 class HomeLand : public Map
@@ -52,6 +135,7 @@ private:
 	SDL_Video video;
 	Game& g;
 	Entity* camera;
+
 public:
 	HomeLand( Game& game) : g( game )
 	{ 
@@ -81,18 +165,16 @@ public:
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
 			{
-				int pos_x = x*tilew, pos_y = y*tileh;
-
 				if ( ( rand()%10 < 2 ) && ( (x!=0) || (y!=0) ) )
 				{
-					data.push_back( Tile( terrainProps, rand()%4, pos_x, pos_y ) );
+					data.push_back( Tile( terrainProps, rand()%4, Map::Tile::eNoGo ) );
 				}
 				else 
 				{
 					if ( y % 2 != 0 )	
-						data.push_back( x % 2 != 0 ? Tile(dirt, 0, pos_x, pos_y) : Tile(grass, 0, pos_x, pos_y) ); 
+						data.push_back( x % 2 != 0 ? Tile(dirt, 0) : Tile(grass, 0) ); 
 					else 
-						data.push_back( x % 2 != 0 ? Tile(grass, 0, pos_x, pos_y) : Tile(dirt, 0, pos_x, pos_y));
+						data.push_back( x % 2 != 0 ? Tile(grass, 0) : Tile(dirt, 0));
 				}
 			}
 
@@ -108,90 +190,6 @@ public:
 		for( Entity* e: entities )
 		{
 			e->video = &video;
-		}
-	}
-
-	// returns true if an entity is standing on any no go tiles
-	bool EntityCollision( Entity* e )
-	{
-		static int tiles[4];
-		int tileCount = 0;
-		int pos_x = (int)e->pos.x, pos_y = (int)e->pos.y;
-		int offs_x =  pos_x % tilew, offs_y =  pos_y % tileh;
-
-		// collect all the tile's we're intersecting with
-		tiles[ tileCount++ ] = pos_y / tileh * Map::w + pos_x / tilew;
-
-		if ( offs_x > 0 )
-			tiles[tileCount++] = tiles[0] + 1;
-		if ( offs_y > 0 )
-			tiles[tileCount++] = tiles[0] + Map::w;
-		if( (offs_x > 0) && (offs_y > 0) )
-			tiles[tileCount++] = tiles[0] + Map::w + 1;
-
-		// see if we're intersecting with any no go tiles and work out the right collision response
-		for ( int i = 0; i < tileCount; ++i )
-		{
-			if ( data[tiles[i]].data == terrainProps )
-				return true;
-		}
-
-		return false;
-	}
-
-	void Collision( Entity* e )
-	{
-		// how collision detection works.
-		// After an entity has moved,
-		// check if there's any collisions.
-		// if so, revert one component ( x component ) of the position
-		// again check for any collisions.
-		// if no, then place the entity at the edge of the offending tile,
-		// which is gleaned from the position component changed.
-		//
-		// if there is a collision, negate the reversion and test the other
-		// position component (y). if there's still a collision after reverting 
-		// both components by themselves, then we know there's a collision in
-		// dimensions and figure out where to place the object in the x/y plane.
-
-		bool xPosChanged = ( e->vel.x == 0 ? true : false ),
-			 yPosChanged = ( e->vel.y == 0 ? true : false );
-		
-		if ( xPosChanged && yPosChanged ) // entity has not moved, no collision
-			return;	
-
-		bool collision = EntityCollision( e );
-
-		if ( collision )
-		{
-			int offs_x =  (int)e->pos.x % tilew, offs_y =  (int)e->pos.y % tileh;
-
-			// first change x position
-			if ( !xPosChanged  )
-			{
-				int tempPos_x = e->pos.x;
-				e->pos.x = e->pos.x - e->vel.x;
-				collision = EntityCollision( e );
-				if ( collision )
-					e->pos.x = tempPos_x;
-				else
-				{
-					e->pos.x = tempPos_x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
-					return;
-				}
-			}
-
-			// second, change y position
-			int tempPos_y = e->pos.y;
-			e->pos.y = e->pos.y - e->vel.y; 
-			collision = EntityCollision( e );
-			if ( collision )
-			{
-				e->pos.x = e->pos.x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
-				return;
-			}
-			else
-				return;
 		}
 	}
 

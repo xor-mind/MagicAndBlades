@@ -71,7 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Agggrool.h" />
-    <ClInclude Include="Attack.h" />
+    <ClInclude Include="Combat.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityEvents.h" />

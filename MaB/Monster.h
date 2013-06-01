@@ -1,20 +1,20 @@
 #ifndef MONSTER_H
 #define MONSTER_H
 
-#include "Attack.h"
+#include "Combat.h"
 
 class Monster : public Entity
 {
 protected:
-	Attack attack;
+	Combat combat;
 public:
 
-	Monster(Game& g) : Entity(g), attack( this ) {}
+	Monster(Game& g) : Entity(g), combat( this ) {}
 	virtual ~Monster() {}
 
 	void Logic()
 	{
-		attack.Logic();
+		combat.Logic();
 		Entity::Logic();
 	}
 

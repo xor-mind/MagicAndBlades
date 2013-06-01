@@ -56,10 +56,10 @@
     <ClInclude Include="Entity.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
-    <ClInclude Include="Attack.h">
+    <ClInclude Include="Monster.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
-    <ClInclude Include="Monster.h">
+    <ClInclude Include="Combat.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
   </ItemGroup>

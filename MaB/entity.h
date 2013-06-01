@@ -28,10 +28,35 @@ struct Entity : public EntityEventManager
 	Vector pos, dim, vel;
 	float speed;
 
+	class Attack
+	{
+	public:
+		Attack( Entity* e ) : melee( e ) {}
+		class Melee
+		{
+			Entity* e;
+			uint coolDownTimer;
+		public:
+			Melee( Entity* e ) : e(e), coolDownTimer(0) {}
+			bool Cooldown() { return ( SDL_GetTicks() - coolDownTimer > 3000 )  ? false : true; }
+			bool Attack( Entity* target ) 
+			{
+				if ( !Cooldown() )
+					if ( e->Rectangle().Intersect( target->Rectangle() ) )
+					{
+						target->Damage( 3 );
+						coolDownTimer = SDL_GetTicks();
+					}
+				return false; 
+			}
+		};
+		Melee melee;
+	};
+	Attack* attack;
 public:
 
-	Entity( Game& game ) : model(nullptr), g( game ) {}
-	virtual ~Entity() {}
+	Entity( Game& game ) : model(nullptr), g( game ) { attack = new Attack( this ); }
+	virtual ~Entity() { delete attack; }
 
 	Rect Rectangle() { return Rect( pos, dim ); }
 
@@ -71,6 +96,8 @@ public:
 		}
 	}
 	
+	void Damage( int d ) { health -= d; }
+
 	void MoveToPlayer( Entity* target )
 	{
 		vel = Vector( 0, 0 );

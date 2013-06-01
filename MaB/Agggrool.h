@@ -56,7 +56,7 @@ public:
 			if ( s == 1 )
 			{
 				// attack the player
-				attack.target = (Entity*)mcc->to;
+				combat.target = (Entity*)mcc->to;
 			}
 		}
 		else
