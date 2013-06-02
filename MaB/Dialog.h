@@ -53,10 +53,11 @@ public:
 		SDL_FreeSurface(format_surface);
 	}
 
+	// bottom-centers the dialog
 	void UpdateRect( const Rect& cam )
 	{
 		int x = (int)( cam.left + ( cam.w - width ) / 2 ), 
-			y = (int)( cam.bottom - height - .07f * cam.h ); 
+			y = (int)( cam.bottom - height - .07f * cam.h ); // put 7% of the cam's height between the bottom of the dialog and the camera edge.
 		rect = Rect( x, y, x + width, y + height );
 	}
 

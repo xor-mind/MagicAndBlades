@@ -198,7 +198,8 @@ public:
 		player->Logic();
 		aggGrool->Logic();
 
-		camera->pos += camera->vel;
+		//camera->pos += camera->vel;
+		CenterCamera( player.get() );
 
 		for(Entity* e : entities)
 		{
@@ -294,6 +295,27 @@ public:
 	{
 		SDL_FreeSurface(grass); SDL_FreeSurface(dirt);
 		SDL_FreeSurface(avatar); SDL_FreeSurface( healthBar );
+	}
+
+	void CenterCamera( Entity* e )
+	{
+		//camera->pos.x = e->pos.x + e->dim.x/2 - camera->dim.x/2; 
+		//camera->pos.y = e->pos.y + e->dim.y/2 - camera->dim.y/2; 
+
+		// construct a 75x75 box that the player can move around in
+		int boxSize = 50;
+		int x1 = camera->pos.x + camera->dim.x/2 - boxSize,
+			y1 = camera->pos.y + camera->dim.y/2 - boxSize;
+		int x2 = x1 + (boxSize<<1),
+			y2 = y1 + (boxSize<<1);
+		if ( e->pos.x < x1 )
+			camera->pos.x -= e->speed;
+		if ( e->pos.y < y1 )
+			camera->pos.y -= e->speed;
+		if ( e->pos.x + e->dim.x > x2 )
+			camera->pos.x += e->speed;
+		if ( e->pos.y + e->dim.y > y2 )
+			camera->pos.y += e->speed;
 	}
 };
 
