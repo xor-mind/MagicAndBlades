@@ -3,6 +3,7 @@
 
 #include "Player.h"
 #include "Agggrool.h"
+#include "Sheep.h"
 
 #include <algorithm>
 #include <memory>
@@ -127,9 +128,10 @@ public:
 class HomeLand : public Map
 {
 private:
-	SDL_Surface * grass, * dirt, * avatar, *healthBar, *terrainProps;
+	SDL_Surface * grass, * dirt, * avatar,  *sheepSurface, *healthBar, *terrainProps;
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
+	std::unique_ptr<Sheep> sheep;
 	EntityVector entities;
 	SDL_Rect clipRect;
 	SDL_Video video;
@@ -144,6 +146,7 @@ public:
 		camera = g.camera = new Entity( g );
 		player.reset( new Player( g ) );
 		aggGrool.reset( new AggGrool( g ) );
+		sheep.reset( new Sheep( g ) );
 	}
 	~HomeLand() { delete g.camera; }
 
@@ -165,7 +168,7 @@ public:
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
 			{
-				if ( ( rand()%10 < 2 ) && ( (x!=0) || (y!=0) ) )
+				if ( ( rand()%10 < 2 ) && ( (x!=0) || (y!=0) ) && ( (x!=8) || (y!=8) ) && ( (x!=8) || (y!=10) ) )
 				{
 					data.push_back( Tile( terrainProps, rand()%4, Map::Tile::eNoGo ) );
 				}
@@ -178,14 +181,21 @@ public:
 				}
 			}
 
-		avatar = Surface::BmpLoad("./art/avatar01.bmp");
-		healthBar = Surface::BmpLoad("./art/healthBar.bmp");
+		avatar       = Surface::BmpLoad("./art/avatar01.bmp");
+		healthBar    = Surface::BmpLoad("./art/healthBar.bmp");
+		sheepSurface = Surface::BmpLoad("./art/sheep.bmp");
+		
 		player->Init(avatar, healthBar);
+		
 		aggGrool->Init(avatar, healthBar);
 		aggGrool->pos = Vector(32*8,32*8);
-		//entities.push_back( camera );
+		
+		sheep->Init( sheepSurface, healthBar );
+		sheep->pos = Vector(32*8,32*10);
+
 		entities.push_back(( (Entity*)player.get() ));
 		entities.push_back(( (Entity*)aggGrool.get() ));
+		entities.push_back(( (Entity*)sheep.get() ));
 
 		for( Entity* e: entities )
 		{
@@ -295,6 +305,7 @@ public:
 	{
 		SDL_FreeSurface(grass); SDL_FreeSurface(dirt);
 		SDL_FreeSurface(avatar); SDL_FreeSurface( healthBar );
+		SDL_FreeSurface(sheepSurface);
 	}
 
 	void CenterCamera( Entity* e )
@@ -304,8 +315,8 @@ public:
 
 		// construct a 75x75 box that the player can move around in
 		int boxSize = 50;
-		int x1 = camera->pos.x + camera->dim.x/2 - boxSize,
-			y1 = camera->pos.y + camera->dim.y/2 - boxSize;
+		int x1 = (int)( camera->pos.x + camera->dim.x/2 - boxSize ),
+			y1 = (int)( camera->pos.y + camera->dim.y/2 - boxSize );
 		int x2 = x1 + (boxSize<<1),
 			y2 = y1 + (boxSize<<1);
 		if ( e->pos.x < x1 )

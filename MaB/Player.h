@@ -31,6 +31,10 @@ public:
 				case SDLK_a: vel.x = -speed; break;
 				case SDLK_w: vel.y = -speed; break;
 				case SDLK_s: vel.y = speed; break;
+				case SDLK_i: MoveTiles(0,-1); break;
+				case SDLK_j: MoveTiles(-1,0); break;
+				case SDLK_k: MoveTiles(0,1); break;
+				case SDLK_l: MoveTiles(1, 0); break;
 					default: break;
 			}
 	}
@@ -60,7 +64,7 @@ public:
 		for( EntityEvent* e : dialogEvents ) 
 			e->RButtonDown( mX, mY );
 	}
-	void Logic()
+	void Logic() override
 	{
 		Entity::Logic();
 

@@ -12,6 +12,7 @@
 #include "Dialog.h"
 #include "EntityEvents.h"
 #include "Game.h"
+#include "MabMisc.h"
 
 using namespace boost::assign; // bring 'operator+=()' into scope
 
@@ -26,6 +27,7 @@ struct Entity : public EntityEventManager
 	// entity properties
 	int str, health;
 	Vector pos, dim, vel;
+	Vector remainingDistance; // used to travel to a tile
 	float speed;
 
 	class Attack
@@ -62,6 +64,7 @@ public:
 
 	virtual bool Init(SDL_Surface* model, SDL_Surface* healthBar)
 	{
+		remainingDistance = Vector(0, 0); 
 		this->model = model;
 		this->healthBar = healthBar;
 		return true;
@@ -71,10 +74,24 @@ public:
 		Rect r = FoV.SubtractPosition( cam );
 		video->renderPerimiter(&r);
 	}
-	void Logic()
+	virtual void Logic()
 	{
 		ProcessEvent();
-		pos += vel;
+
+		// do we already have a path set?
+		if ( remainingDistance.x != 0.f || remainingDistance.y != 0.f )
+		{
+			float speed_x = sgn<float>(remainingDistance.x) * min( abs(remainingDistance.x), speed ),
+				  speed_y = sgn<float>(remainingDistance.y) * min( abs(remainingDistance.y), speed );
+			pos.x += speed_x;
+			pos.y += speed_y;
+			remainingDistance.x -= speed_x; 
+			remainingDistance.y -= speed_y;
+		}
+		else
+			pos += vel;
+		
+		
 		FoV.left = (int)( pos.x + dim.x/2 - fovDim.x );
 		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
 		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
@@ -114,6 +131,12 @@ public:
 		{
 			vel.y = -sgn( dy ) * speed;
 		}
+	}
+	
+	// move x tiles by y tiles
+	void MoveTiles( int x, int y )
+	{
+		remainingDistance = Vector(x*32.f, y*32.f);
 	}
 
 	void Strength( int str ) { this->str = str; health = str; }

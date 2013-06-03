@@ -62,6 +62,15 @@
     <ClInclude Include="Combat.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
+    <ClInclude Include="State.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="StateMachine.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Sheep.h">
+      <Filter>Header Files\entities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt">
