@@ -28,8 +28,8 @@ public:
 
 	void Logic() override 
 	{
+		stateMachine->Update();
 		Entity::Logic();
-
 	}
 
 	StateMachine<Sheep>* GetFSM() const { return stateMachine; }
@@ -59,37 +59,64 @@ public:
 
 	  virtual void Execute(Sheep* sheep)
 	  {
-		  if ( rand()%2 == 1 )
-			sheep->MoveTiles( 0, -1);
-		  else
-			sheep->MoveTiles( 0, 1);
+		  if ( !sheep->isMoving() )
+		  {
+			  if ( rand()%2 == 1 ) {
+				  sheep->GetFSM()->SetCurrentState( WanderWE::Instance() );
+			  }
+			  else {
+				  if ( rand()%2 == 1 )
+					sheep->MoveTiles( 0, -1);
+				  else
+					sheep->MoveTiles( 0, 1);
+			  }
+		  }
 	  }
 
 	  virtual void Exit(Sheep* sheep) {}
 
 	};
 
-	//class WanderWE : public State<Sheep>
-	//{
-	//private:
- // 
-	//  WanderWE(){}
+	class WanderWE : public State<Sheep>
+	{
+	private:
+  
+	  WanderWE(){}
 
-	//  //copy ctor and assignment should be private
-	//  WanderWE(const WanderWE&);
-	//  WanderWE& operator=(const WanderWE&);
- //
-	//public:
+	  //copy ctor and assignment should be private
+	  WanderWE(const WanderWE&);
+	  WanderWE& operator=(const WanderWE&);
+ 
+	public:
 
-	//  static WanderWE* Instance();
- // 
-	//  virtual void Enter(Sheep* sheep);
+	  static WanderWE* Instance() 
+	  {
+		  static WanderWE instance;
 
-	//  virtual void Execute(Sheep* sheep);
+		  return &instance;
+	  }
+  
+	  virtual void Enter(Sheep* sheep) {}
 
-	//  virtual void Exit(Sheep* sheep);
+	  virtual void Execute(Sheep* sheep)
+	  {
+		  if ( !sheep->isMoving() )
+		  {
+			  if ( rand()%2 == 1 ) {
+				  sheep->GetFSM()->SetCurrentState( WanderNS::Instance() );
+			  }
+			  else {
+				  if ( rand()%2 == 1 )
+					sheep->MoveTiles( -1, 0);
+				  else
+					sheep->MoveTiles( 1, 0);
+			  }
+		  }
+	  }
 
-	//};
+	  virtual void Exit(Sheep* sheep) {}
+
+	};
 };
 
 

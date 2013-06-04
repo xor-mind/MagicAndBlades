@@ -212,6 +212,7 @@ public:
 	{
 		player->Logic();
 		aggGrool->Logic();
+		sheep->Logic();
 
 		//camera->pos += camera->vel;
 		CenterCamera( player.get() );
