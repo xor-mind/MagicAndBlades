@@ -29,7 +29,7 @@ struct Entity : public EntityEventManager
 	Vector pos, dim, vel;
 	Vector remainingDistance; // used to travel to a tile
 	float speed;
-
+	bool doneMoving;
 	class Attack
 	{
 	public:
@@ -64,6 +64,7 @@ public:
 
 	virtual bool Init(SDL_Surface* model, SDL_Surface* healthBar)
 	{
+		doneMoving = false;
 		remainingDistance = Vector(0, 0); 
 		this->model = model;
 		this->healthBar = healthBar;
@@ -78,15 +79,23 @@ public:
 	{
 		ProcessEvent();
 
+		// after moving an automated distance we need to set the vel to zero, but this must be after collision detection
+		// hence this weirdness.
+		if ( doneMoving == true ) {
+			vel = Vector( 0, 0 );
+			doneMoving = false;
+		}
 		// do we already have a path set?
 		if ( remainingDistance.x != 0.f || remainingDistance.y != 0.f )
 		{
 			float speed_x = sgn<float>(remainingDistance.x) * min( abs(remainingDistance.x), speed ),
 				  speed_y = sgn<float>(remainingDistance.y) * min( abs(remainingDistance.y), speed );
-			pos.x += speed_x;
-			pos.y += speed_y;
+			vel.x = speed_x;
+			vel.y = speed_y;
 			remainingDistance.x -= speed_x; 
 			remainingDistance.y -= speed_y;
+			pos += vel;
+			doneMoving = true;
 		}
 		else
 			pos += vel;
@@ -136,7 +145,11 @@ public:
 	// move x tiles by y tiles
 	void MoveTiles( int x, int y )
 	{
-		remainingDistance = Vector(x*32.f, y*32.f);
+		if ( remainingDistance.x == 0.f && remainingDistance.y == 0.f )
+		{
+			remainingDistance = Vector(x*32.f, y*32.f);
+			doneMoving = false;
+		}
 	}
 
 	void Strength( int str ) { this->str = str; health = str; }

@@ -94,11 +94,12 @@ public:
 		if ( collision )
 		{
 			int offs_x =  (int)e->pos.x % tilew, offs_y =  (int)e->pos.y % tileh;
+			int tempPos_x, tempPos_y;
 
 			// first change x position
 			if ( !xPosChanged  )
 			{
-				int tempPos_x = (int)e->pos.x;
+				tempPos_x = (int)e->pos.x;
 				e->pos.x = e->pos.x - e->vel.x;
 				collision = EntityCollision( e );
 				if ( collision )
@@ -111,16 +112,20 @@ public:
 			}
 
 			// second, change y position
-			int tempPos_y = (int)e->pos.y;
+			tempPos_y = (int)e->pos.y;
 			e->pos.y = e->pos.y - e->vel.y; 
 			collision = EntityCollision( e );
 			if ( collision )
 			{
-				e->pos.x = e->pos.x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) );
+				e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) ) );
+				e->pos.y = (float)( tempPos_y - ( e->vel.y > 0 ? offs_y : -(tilew - offs_y) ) );
 				return;
 			}
 			else
+			{
+				e->pos.y = (float)( tempPos_y - ( e->vel.y > 0 ? offs_y : -(tilew - offs_y) ) );
 				return;
+			}
 		}
 	}
 };
@@ -217,6 +222,32 @@ public:
 			Collision( e );
 		}
 		Bound( *camera );
+		int offs_x =  (int)player->pos.x % tilew, offs_y =  (int)player->pos.y % tileh;
+		// adjust player position to get through tiles
+		if ( player->vel.x != 0.f )
+		{
+			if ( offs_y != 0 )
+				if ( offs_y <= 4 )
+				{
+					player->pos.y -= 1;
+				}
+				else if ( offs_y > 27 ) 
+				{
+					player->pos.y += 1;
+				}
+		}
+		if ( player->vel.y != 0.f )
+		{
+			if ( offs_x != 0 )
+				if ( offs_x < 4 )
+				{
+					player->pos.x -= 1;
+				}
+				else if ( offs_x > 27 ) 
+				{
+					player->pos.x += 1;
+				}
+		}
 
 		if ( aggGrool->FoV.Intersect(player->Rectangle()) )
 		{

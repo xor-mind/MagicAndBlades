@@ -1,3 +1,7 @@
+2013-06-01
+
+move to tile needs better collision dection.
+
 2013-05-29
 rendering the field of view takes away like 25 fps! dammmmmnn
 
