@@ -128,6 +128,8 @@ public:
 			}
 		}
 	}
+
+	int Test() { return 5; }
 };
 
 class HomeLand : public Map
@@ -326,7 +328,19 @@ public:
 
 	void LButtonDown(int mX, int mY)  
 	{
-		player->LButtonDown( mX, mY );
+		Entity* ent = nullptr;
+		float map_mx = (float)mX + camera->pos.x,
+			  map_my = (float)mY + camera->pos.y;
+		for ( Entity* e : entities )
+		{
+			if ( map_mx >= e->pos.x && map_mx < e->pos.x + e->dim.x )
+				if ( map_mx >= e->pos.y && mY <  e->pos.y + e->dim.y )
+				{
+					ent = e;
+					break;
+				}
+		}
+		player->LButtonDown( mX, mY, ent );
 	} 
 	void RButtonDown(int mX, int mY)  
 	{

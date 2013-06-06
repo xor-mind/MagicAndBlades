@@ -29,6 +29,8 @@ struct Entity : public EntityEventManager
 	Vector pos, dim, vel;
 	Vector remainingDistance; // used to travel to a tile
 	float speed;
+	bool warMode;
+	bool NPC;
 
 	class Attack
 	{
@@ -64,6 +66,7 @@ public:
 
 	virtual bool Init(SDL_Surface* model, SDL_Surface* healthBar)
 	{
+		warMode = false;
 		remainingDistance = Vector(0, 0); 
 		this->model = model;
 		this->healthBar = healthBar;
@@ -159,6 +162,13 @@ public:
 	}
 
 	void Strength( int str ) { this->str = str; health = str; }
+
+	void ToggleWarMode()
+	{
+		warMode = !warMode;
+	}
+
+	bool isNPC() { return NPC; }
 };
 
 typedef std::vector<Entity*> EntityVector;

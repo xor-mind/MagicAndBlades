@@ -11,7 +11,7 @@ class Sheep : public Entity
 public:
 	Sheep( Game& g) : Entity(g)
 	{
-		Strength(3);
+		Strength(6);
 		pos = vel = Vector(0,0);
 		speed = 1.f;
 		dim = Vector(32,32);

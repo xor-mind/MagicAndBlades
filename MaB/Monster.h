@@ -9,7 +9,7 @@ protected:
 	Combat combat;
 public:
 
-	Monster(Game& g) : Entity(g), combat( this ) {}
+	Monster(Game& g) : Entity(g), combat( this ) { NPC = true; }
 	virtual ~Monster() {}
 
 	void Logic()

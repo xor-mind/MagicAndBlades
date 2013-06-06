@@ -27,7 +27,8 @@ public:
 			// try and attack! no need for cover or anything else :D
 			if ( !e->attack->melee.Attack( target ) )
 			{
-				e->MoveToPlayer( target );
+				if ( e->isNPC() )
+					e->MoveToPlayer( target );
 			}
 		}
 	}
