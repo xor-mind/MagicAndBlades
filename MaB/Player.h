@@ -7,6 +7,7 @@
 class Player : public Entity
 {
 	Combat combat;
+	Sprite exclamation;
 public:
 
 	EntityEventList dialogEvents;
@@ -19,6 +20,11 @@ public:
 		dim = Vector(32,32);
 		fovDim = Vector(100, 100);
 		NPC = false;
+
+		SDL_Surface* s = Surface::BmpLoad( "./art/red_exclamation.bmp");
+		Surface::PinkTransparent(s);
+		exclamation.surfaces.push_back( s );
+		exclamation.blinkingDelay = 444;
 	}
 	
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
@@ -95,6 +101,8 @@ public:
 
 		for( EntityEvent* e : dialogEvents ) 
 			e->Logic();
+
+		exclamation.Update();
 	}
 	void Render( SDL_Surface* dest ) override
 	{
@@ -105,6 +113,18 @@ public:
 				e->Render( dest, cr );
 		}
 		Entity::Render( dest );
+		if ( warMode )
+		{
+			int x = pos.x - cr.left +dim.x/2 - 8, 
+				y = pos.y - cr.top - 28;
+			exclamation.Render( dest, x, y );
+		}
+		if ( combat.target )
+		{
+			int x = combat.target->pos.x - cr.left + combat.target->dim.x/2 - 8, 
+				y = combat.target->pos.y - cr.top - 28;
+			exclamation.Render( dest, x, y );
+		}
 	}
 	void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) override
 	{
