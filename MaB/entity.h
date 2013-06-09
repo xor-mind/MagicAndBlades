@@ -30,7 +30,7 @@ struct Entity : public EntityEventManager
 	Vector remainingDistance; // used to travel to a tile
 	float speed;
 	bool warMode;
-	bool NPC;
+	bool NPC, remove;
 
 	class Attack
 	{
@@ -40,6 +40,7 @@ struct Entity : public EntityEventManager
 		{
 			Entity* e;
 			uint coolDownTimer;
+			bool targetKilled;
 		public:
 			Melee( Entity* e ) : e(e), coolDownTimer(0) {}
 			bool Cooldown() { return ( SDL_GetTicks() - coolDownTimer > 3000 )  ? false : true; }
@@ -49,10 +50,16 @@ struct Entity : public EntityEventManager
 					if ( e->Rectangle().Intersect( target->Rectangle() ) )
 					{
 						target->Damage( 3 );
+						if ( target->health <= 0 )
+							targetKilled = true;
+						else
+							targetKilled = false;
 						coolDownTimer = SDL_GetTicks();
+						return true;
 					}
 				return false; 
 			}
+			bool TargetKilled() const { return targetKilled; }
 		};
 		Melee melee;
 	};
@@ -66,6 +73,7 @@ public:
 
 	virtual bool Init(SDL_Surface* model, SDL_Surface* healthBar)
 	{
+		remove = false;
 		warMode = false;
 		remainingDistance = Vector(0, 0); 
 		this->model = model;
@@ -123,7 +131,7 @@ public:
 		}
 	}
 	
-	void Damage( int d ) { health -= d; }
+	void Damage( int d ) { health -= d; if (health <= 0 ) remove = true; }
 
 	void MoveToPlayer( Entity* target )
 	{
@@ -169,10 +177,12 @@ public:
 	}
 
 	bool isNPC() { return NPC; }
+
+	bool Remove() { return remove; }
 };
 
 typedef std::vector<Entity*> EntityVector;
-
+typedef std::list<Entity*> EntityList;
 #endif
 
 

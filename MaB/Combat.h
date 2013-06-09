@@ -30,6 +30,11 @@ public:
 				if ( e->isNPC() )
 					e->MoveToPlayer( target );
 			}
+			else
+			{
+				if ( e->attack->melee.TargetKilled() )
+					target = nullptr;
+			}
 		}
 	}
 };

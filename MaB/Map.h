@@ -139,7 +139,7 @@ private:
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
 	std::unique_ptr<Sheep> sheep;
-	EntityVector entities;
+	EntityList entities;
 	SDL_Rect clipRect;
 	SDL_Video video;
 	Game& g;
@@ -212,19 +212,22 @@ public:
 
 	void Logic()
 	{
-		player->Logic();
-		aggGrool->Logic();
-		sheep->Logic();
 
 		//camera->pos += camera->vel;
-		CenterCamera( player.get() );
-
-		for(Entity* e : entities)
+		
+		for( auto e = entities.begin(), end = entities.end(); e != end;  )
 		{
-			Bound(*e);
-			Collision( e );
+			if ( (*e)->Remove() )
+			{
+				e = entities.erase( e );
+				continue;
+			}
+			(*e)->Logic();
+			Bound(*(*e));
+			Collision( (*e) );
+			++e;
 		}
-		Bound( *camera );
+
 		int offs_x =  (int)player->pos.x % tilew, offs_y =  (int)player->pos.y % tileh;
 		// adjust player position to get through tiles
 		if ( player->vel.x != 0.f )
@@ -251,6 +254,9 @@ public:
 					player->pos.x += 1;
 				}
 		}
+
+		CenterCamera( player.get() );
+		Bound( *camera );
 
 		if ( aggGrool->FoV.Intersect(player->Rectangle()) )
 		{
@@ -334,7 +340,7 @@ public:
 		for ( Entity* e : entities )
 		{
 			if ( map_mx >= e->pos.x && map_mx < e->pos.x + e->dim.x )
-				if ( map_mx >= e->pos.y && mY <  e->pos.y + e->dim.y )
+				if ( map_my >= e->pos.y && map_my <  e->pos.y + e->dim.y )
 				{
 					ent = e;
 					break;
