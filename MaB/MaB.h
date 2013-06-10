@@ -16,12 +16,12 @@
 
 class MaB : public SDL_App
 {
-	Game g;
 	SDL_Surface * screen;
 	HighPerformanceTimer hpt;
 	Vector screenDim;
 	FpsCounter fpsCounter;
 	SDL_Video video;
+	Map* map;
 public:
 	MaB() {}
 	~MaB() {}
@@ -35,8 +35,8 @@ public:
 			return false;
 		}
 
-		g.map = new HomeLand( g );
-		((HomeLand*)g.map)->Init( screen );
+		map = new HomeLand();
+		((HomeLand*)map)->Init( screen );
 
 		hpt.InitTimer(20); 
 		// _putenv("SDL_VIDEODRIVER=windib"); whats frame rate with this in?
@@ -45,7 +45,7 @@ public:
 	}
 	void Render() override
 	{
-		((HomeLand*)g.map)->Render( screen );
+		((HomeLand*)map)->Render( screen );
 		fpsCounter.Render( screen, 0, 0 );
 		SDL_Flip( screen );
 	}
@@ -57,7 +57,7 @@ public:
 		hpt.UpdateTime1();
 		if ( hpt.DeltaTime() >= hpt.LogicTime() )
 		{
-			((HomeLand*)g.map)->Logic(); 
+			((HomeLand*)map)->Logic(); 
 			//logicFPS++;
 			hpt.UpdateFixedStep();
 		}
@@ -71,28 +71,28 @@ public:
 	}
 	void Cleanup() override
 	{
-		((HomeLand*)g.map)->CleanUp();
-		delete g.map;
+		((HomeLand*)map)->CleanUp();
+		delete map;
 	}
 
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override
 	{
-		((HomeLand*)g.map)->KeyDown( sym, mod, unicode );
+		((HomeLand*)map)->KeyDown( sym, mod, unicode );
 	}
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) override
 	{
-		((HomeLand*)g.map)->KeyUp( sym, mod, unicode );
+		((HomeLand*)map)->KeyUp( sym, mod, unicode );
 	}
 	void LButtonDown(int mX, int mY) override 
 	{
-		((HomeLand*)g.map)->LButtonDown( mX, mY );
+		((HomeLand*)map)->LButtonDown( mX, mY );
 	} 
  
 	void LButtonUp(int mX, int mY) override {}
  
 	void RButtonDown(int mX, int mY) override 
 	{
-		((HomeLand*)g.map)->RButtonDown( mX, mY );
+		((HomeLand*)map)->RButtonDown( mX, mY );
 	}
  
 	void RButtonUp(int mX, int mY) override {}

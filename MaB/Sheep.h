@@ -9,7 +9,7 @@ class Sheep : public Entity
 	StateMachine<Sheep>*  stateMachine;
 
 public:
-	Sheep( Game& g) : Entity(g)
+	Sheep()
 	{
 		Strength(6);
 		pos = vel = Vector(0,0);

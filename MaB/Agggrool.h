@@ -9,7 +9,7 @@ public:
 	
 	int health;
 	MultipleChoice mc; 
-	AggGrool( Game& g) : Monster(g), health(100) 
+	AggGrool() : health(100) 
 	{
 		
 		pos = vel = Vector(0,0);

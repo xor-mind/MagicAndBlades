@@ -8,11 +8,35 @@
 #include <algorithm>
 #include <memory>
 
+struct EntityFactory
+{
+	virtual ~EntityFactory() {}
+	virtual Entity* create() = 0;
+};
+
+struct SheepFactory : public EntityFactory
+{
+	SDL_Surface* model, * healthBar;
+	Entity* create() override
+	{
+		Entity * e = new Sheep();
+		e->Init( model, healthBar);
+		return e;
+	}
+
+	static SheepFactory* instance() { return & sheepFactory(); }
+private:
+	static SheepFactory& sheepFactory() { static SheepFactory f; return f; }
+	SheepFactory() {}
+};
+
+
 class Map
 {
 protected:
 	static const int tilew = 32, tileh = 32;
 	uint w,h;  // map width and height
+	EntityList entities;
 
 public:
 	struct Tile
@@ -37,7 +61,35 @@ public:
 	};
 	std::vector<Tile> data;
 
+	struct Spawn
+	{
+		uint spawnDelay;
+		uint maxCount; 
+		Entity* type;
+		uint tile_x, tile_y;
+
+		EntityFactory * factory;
+		EntityList spawned;
+		Map* map;
+
+		Spawn( Map* map, uint spawnDelay, uint maxCount, uint tile_x, uint tile_y, EntityFactory * factory )
+			: map(map), spawnDelay( spawnDelay ), maxCount( maxCount ), tile_x( tile_x ), tile_y( tile_y ), factory( factory )
+		{
+		}
+		
+		void SpawnAll()
+		{
+			for (uint i = spawned.size(); i < maxCount; ++i )
+			{
+				Entity * e = factory->create();
+				e->pos = Vector(32*8,32*10);
+				map->AddEntity( e );
+			}
+		}
+	};
+
 public:
+	Map() {}
 	virtual ~Map() {}
 
 	// returns true if an entity is standing on any no go tiles
@@ -130,6 +182,11 @@ public:
 	}
 
 	int Test() { return 5; }
+
+	void AddEntity( Entity* e )
+	{
+		entities.push_back(e);
+	}
 };
 
 class HomeLand : public Map
@@ -139,23 +196,24 @@ private:
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
 	std::unique_ptr<Sheep> sheep;
-	EntityList entities;
+	
 	SDL_Rect clipRect;
 	SDL_Video video;
-	Game& g;
+	
 	Entity* camera;
-
+	Spawn* spawn;
 public:
-	HomeLand( Game& game) : g( game )
+	HomeLand( ) 
 	{ 
 		w = h = 80; 
 		//camera.reset( new Entity( g ) );
-		camera = g.camera = new Entity( g );
-		player.reset( new Player( g ) );
-		aggGrool.reset( new AggGrool( g ) );
-		sheep.reset( new Sheep( g ) );
+		camera = new Entity( );
+		player.reset( new Player( ) );
+		aggGrool.reset( new AggGrool(  ) );
+		sheep.reset( new Sheep( ) );
 	}
-	~HomeLand() { delete g.camera; }
+	~HomeLand() { delete camera; }
+
 
 	void Init( SDL_Surface * display )
 	{
@@ -192,17 +250,21 @@ public:
 		healthBar    = Surface::BmpLoad("./art/healthBar.bmp");
 		sheepSurface = Surface::BmpLoad("./art/sheep.bmp");
 		
+		SheepFactory::instance()->healthBar = healthBar;
+		SheepFactory::instance()->model     = sheepSurface;
+
 		player->Init(avatar, healthBar);
 		
 		aggGrool->Init(avatar, healthBar);
 		aggGrool->pos = Vector(32*8,32*8);
 		
-		sheep->Init( sheepSurface, healthBar );
-		sheep->pos = Vector(32*8,32*10);
-
+		//sheep->Init( sheepSurface, healthBar );
+		//sheep->pos = Vector(32*8,32*10);
+		spawn = new Spawn( this, 20000, 5, 8, 10, SheepFactory::instance() );
+		spawn->SpawnAll();
 		entities.push_back(( (Entity*)player.get() ));
 		entities.push_back(( (Entity*)aggGrool.get() ));
-		entities.push_back(( (Entity*)sheep.get() ));
+		//entities.push_back(( (Entity*)sheep.get() ));
 
 		for( Entity* e: entities )
 		{
@@ -292,7 +354,7 @@ public:
 		// render entities
 		for(Entity* entity : entities)
 		{
-			entity->Render( screen );	
+			entity->Render( screen, camera );	
 		}
 	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)

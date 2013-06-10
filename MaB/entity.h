@@ -11,14 +11,12 @@
 #include "Rectangle.h"
 #include "Dialog.h"
 #include "EntityEvents.h"
-#include "Game.h"
 #include "MabMisc.h"
 
 using namespace boost::assign; // bring 'operator+=()' into scope
 
 struct Entity : public EntityEventManager
 {
-	Game& g;
 	SDL_Video* video;
 	Rect FoV;
 	Vector fovDim;
@@ -66,7 +64,7 @@ struct Entity : public EntityEventManager
 	Attack* attack;
 public:
 
-	Entity( Game& game ) : model(nullptr), g( game ) { attack = new Attack( this ); }
+	Entity( ) : model(nullptr) { attack = new Attack( this ); }
 	virtual ~Entity() { delete attack; }
 
 	Rect Rectangle() { return Rect( pos, dim ); }
@@ -115,11 +113,11 @@ public:
 		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
 		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
 	}
-	virtual void Render( SDL_Surface* dest )
+	virtual void Render( SDL_Surface* dest, Entity* camera )
 	{
 		if ( model == nullptr )
 				return; 
-		Rect cr = g.camera->Rectangle();
+		Rect cr = camera->Rectangle();
 		if ( cr.Intersect( Rectangle() ) )
 		{
 			int render_x = (int)( pos.x - cr.left ),

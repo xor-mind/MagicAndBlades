@@ -12,7 +12,7 @@ public:
 
 	EntityEventList dialogEvents;
 
-	Player( Game& g) : Entity(g), combat(this)
+	Player() :  combat(this)
 	{
 		Strength(18);
 		pos = vel = Vector(0,0);
@@ -104,25 +104,25 @@ public:
 
 		exclamation.Update();
 	}
-	void Render( SDL_Surface* dest ) override
+	void Render( SDL_Surface* dest, Entity* camera ) override
 	{
-		Rect cr = g.camera->Rectangle();
+		Rect cr = camera->Rectangle();
 		if ( cr.Intersect( Rectangle() ) )
 		{
 			for( EntityEvent* e : dialogEvents ) 
 				e->Render( dest, cr );
 		}
-		Entity::Render( dest );
+		Entity::Render( dest, camera );
 		if ( warMode )
 		{
-			int x = pos.x - cr.left +dim.x/2 - 8, 
-				y = pos.y - cr.top - 28;
+			int x = (int)(pos.x - cr.left +dim.x/2 - 8), 
+				y = (int)(pos.y - cr.top - 28);
 			exclamation.Render( dest, x, y );
 		}
 		if ( combat.target )
 		{
-			int x = combat.target->pos.x - cr.left + combat.target->dim.x/2 - 8, 
-				y = combat.target->pos.y - cr.top - 28;
+			int x = (int)(combat.target->pos.x - cr.left + combat.target->dim.x/2 - 8), 
+				y = (int)(combat.target->pos.y - cr.top - 28);
 			exclamation.Render( dest, x, y );
 		}
 	}
