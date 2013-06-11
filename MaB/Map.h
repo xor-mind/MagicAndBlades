@@ -30,7 +30,6 @@ private:
 	SheepFactory() {}
 };
 
-
 class Map
 {
 protected:
@@ -103,11 +102,11 @@ public:
 		// collect all the tile's we're intersecting with
 		tiles[ tileCount++ ] = pos_y / tileh * Map::w + pos_x / tilew;
 
-		if ( offs_x > 0 )
+		if ( (offs_x + e->dim.x) > tilew )
 			tiles[tileCount++] = tiles[0] + 1;
 		if ( offs_y > 0 )
 			tiles[tileCount++] = tiles[0] + Map::w;
-		if( (offs_x > 0) && (offs_y > 0) )
+		if( ( (offs_x + e->dim.x) > tilew ) && (offs_y > 0) )
 			tiles[tileCount++] = tiles[0] + Map::w + 1;
 
 		// see if we're intersecting with any no go tiles and work out the right collision response
@@ -158,7 +157,7 @@ public:
 					e->pos.x = (float)tempPos_x;
 				else
 				{
-					e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) ) );
+					e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? (offs_x-e->dim.x) : -(tilew - offs_x) ) );
 					return;
 				}
 			}
@@ -169,7 +168,7 @@ public:
 			collision = EntityCollision( e );
 			if ( collision )
 			{
-				e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? offs_x : -(tilew - offs_x) ) );
+				e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? (offs_x-e->dim.x) : -(tilew - offs_x) ) );
 				e->pos.y = (float)( tempPos_y - ( e->vel.y > 0 ? offs_y : -(tilew - offs_y) ) );
 				return;
 			}
@@ -192,7 +191,7 @@ public:
 class HomeLand : public Map
 {
 private:
-	SDL_Surface * grass, * dirt, * avatar,  *sheepSurface, *healthBar, *terrainProps;
+	SDL_Surface * grass, * dirt, * avatar,  *sheepSurface, *healthBar, *terrainProps, *muhammod;
 	std::unique_ptr<Player> player;
 	std::unique_ptr<AggGrool> aggGrool;
 	std::unique_ptr<Sheep> sheep;
@@ -226,6 +225,7 @@ public:
 		video.clipRect = clipRect;
 		SDL_SetClipRect(display, &clipRect);
 
+		muhammod     = Surface::BmpLoad("./art/muhammod.bmp");
 		grass        = Surface::BmpLoad( "./art/grass01.bmp" );
 		dirt         = Surface::BmpLoad( "./art/grass02.bmp" );
 		terrainProps = Surface::BmpLoad( "./art/terrainProps.bmp" );
@@ -253,7 +253,7 @@ public:
 		SheepFactory::instance()->healthBar = healthBar;
 		SheepFactory::instance()->model     = sheepSurface;
 
-		player->Init(avatar, healthBar);
+		player->Init(muhammod, healthBar);
 		
 		aggGrool->Init(avatar, healthBar);
 		aggGrool->pos = Vector(32*8,32*8);

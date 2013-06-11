@@ -8,6 +8,7 @@ class Player : public Entity
 {
 	Combat combat;
 	Sprite exclamation;
+	Sprite moveLeft, moveTop, moveBot;
 public:
 
 	EntityEventList dialogEvents;
@@ -27,6 +28,21 @@ public:
 		exclamation.blinkingDelay = 444;
 	}
 	
+	bool Init(SDL_Surface* model, SDL_Surface* healthBar) override
+	{
+		Entity::Init( model, healthBar );
+		dim.x = 16;
+		int x = 0; 
+		for ( ; x < 16*3; x+=16 )
+		{
+			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
+			moveLeft.surfaces.push_back( s );
+		}
+		moveLeft.delayTime = 100;
+	
+		return true;
+	}
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode)
 	{
 		if ( dialogEvents.size() )
@@ -88,6 +104,11 @@ public:
 		combat.Logic();
 		Entity::Logic();
 
+		if ( abs( vel.x ) != 0.f )
+		{
+			moveLeft.Update();
+		}
+
 		for( auto itr = dialogEvents.begin(), end=dialogEvents.end();
 			 itr != end;  ) 
 		{
@@ -112,7 +133,20 @@ public:
 			for( EntityEvent* e : dialogEvents ) 
 				e->Render( dest, cr );
 		}
-		Entity::Render( dest, camera );
+
+		if ( model == nullptr )
+				return; 
+
+		if ( cr.Intersect( Rectangle() ) )
+		{
+			int render_x = (int)( pos.x - cr.left ),
+				render_y = (int)( pos.y - cr.top );
+			//RenderFov( cr );
+			moveLeft.Render( dest, render_x, render_y );
+			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
+			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
+		}
+
 		if ( warMode )
 		{
 			int x = (int)(pos.x - cr.left +dim.x/2 - 8), 
