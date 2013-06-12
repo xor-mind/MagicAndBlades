@@ -39,7 +39,21 @@ public:
 			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
 			moveLeft.surfaces.push_back( s );
 		}
+		for ( ; x < 16*6; x+=16 )
+		{
+			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
+			moveBot.surfaces.push_back( s );
+		}
+		for ( ; x < 16*9; x+=16 )
+		{
+			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
+			moveTop.surfaces.push_back( s );
+		}
 		moveLeft.delayTime = 100;
+		moveBot.delayTime = 100;
+		moveTop.delayTime = 100;
 	
 		return true;
 	}
@@ -104,10 +118,15 @@ public:
 		combat.Logic();
 		Entity::Logic();
 
-		if ( abs( vel.x ) != 0.f )
-		{
+		if ( abs( vel.x ) != 0.f ) {
 			moveLeft.Update();
 		}
+		if ( vel.y > 0 ) {
+			moveBot.Update();
+		}
+		if ( vel.y < 0 ) {
+			moveTop.Update();
+		}	
 
 		for( auto itr = dialogEvents.begin(), end=dialogEvents.end();
 			 itr != end;  ) 
@@ -142,9 +161,21 @@ public:
 			int render_x = (int)( pos.x - cr.left ),
 				render_y = (int)( pos.y - cr.top );
 			//RenderFov( cr );
-			moveLeft.Render( dest, render_x, render_y );
+			if ( abs( vel.x ) != 0.f ) {
+				moveLeft.Render(dest, render_x, render_y);
+			}
+			else if ( vel.y > 0 ) {
+				moveBot.Render(dest, render_x, render_y);
+			}
+			else if ( vel.y < 0 ) {
+				moveTop.Render(dest, render_x, render_y);
+			}	
+			else
+			{
+				Surface::OnDraw( dest, moveBot.surfaces[1], render_x, render_y );
+			}
 			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
-			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
+			Surface::OnDraw( dest, healthBar, render_x + dim.x/2 -  healthBar->w/2, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
 		}
 
 		if ( warMode )
