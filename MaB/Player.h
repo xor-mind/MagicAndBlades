@@ -8,7 +8,7 @@ class Player : public Entity
 {
 	Combat combat;
 	Sprite exclamation;
-	Sprite moveLeft, moveTop, moveBot;
+	Sprite moveLeft, moveRight, moveTop, moveBot;
 public:
 
 	EntityEventList dialogEvents;
@@ -38,6 +38,7 @@ public:
 			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
 			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
 			moveLeft.surfaces.push_back( s );
+			moveRight.surfaces.push_back( SDL_Video::flip_surface( s, 0 ) );
 		}
 		for ( ; x < 16*6; x+=16 )
 		{
@@ -54,6 +55,7 @@ public:
 		moveLeft.delayTime = 100;
 		moveBot.delayTime = 100;
 		moveTop.delayTime = 100;
+		moveRight.delayTime = 100;
 	
 		return true;
 	}
@@ -118,13 +120,16 @@ public:
 		combat.Logic();
 		Entity::Logic();
 
-		if ( abs( vel.x ) != 0.f ) {
+		if ( vel.x > 0.f ) {
+			moveRight.Update();
+		}
+		else if ( vel.x < 0.f ) {
 			moveLeft.Update();
 		}
 		if ( vel.y > 0 ) {
 			moveBot.Update();
 		}
-		if ( vel.y < 0 ) {
+		else if ( vel.y < 0 ) {
 			moveTop.Update();
 		}	
 
@@ -161,7 +166,10 @@ public:
 			int render_x = (int)( pos.x - cr.left ),
 				render_y = (int)( pos.y - cr.top );
 			//RenderFov( cr );
-			if ( abs( vel.x ) != 0.f ) {
+			if ( vel.x > 0.f ) {
+				moveRight.Render(dest, render_x, render_y);
+			}
+			else if ( vel.x < 0.f ) {
 				moveLeft.Render(dest, render_x, render_y);
 			}
 			else if ( vel.y > 0 ) {
