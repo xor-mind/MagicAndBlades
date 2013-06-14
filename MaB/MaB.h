@@ -29,7 +29,7 @@ public:
 	bool Init() override
 	{
 		video.screen = screen;
-		screenDim = Vector( 600, 600 );
+		screenDim = Vector( 1280, 768 );
 		if((screen = SDL_SetVideoMode( (int)screenDim.x, (int)screenDim.y, 32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL) 
 		{
 			return false;

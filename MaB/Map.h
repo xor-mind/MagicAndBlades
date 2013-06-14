@@ -219,7 +219,7 @@ public:
 		
 		video.screen = display;
 		camera->pos = camera->vel = Vector( 0, 0 );
-		camera->dim = Vector( 32*16, 32*8 ); // map is 512x256
+		camera->dim = Vector( 32*40, 32*24 ); // map is 512x256
 
 		clipRect.x = 0; clipRect.y =  0, clipRect.w = (Uint16)camera->dim.x; clipRect.h = (Uint16)camera->dim.y;
 		video.clipRect = clipRect;
