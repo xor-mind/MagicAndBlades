@@ -9,59 +9,90 @@ and open the template in the editor.
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
     <body>
-        <ul>
-            <li>Engine</li>
-        </ul>
         
+        <div id="engine">
+            <h3>Engine</h3>
+            <p>
+                Estimated Progress: ?%<br/>
+                SDL Tile Engine
+            </p>
+            <ul>
+                <li>[B]Supported Resolutions: 1280×768</li>
+                <li>[B]Square Tiles ( 32 x 32 )</li>
+                <li>[B]100x100 maps</li>
+                <li>[]particle engine effects for:<br/>
+                    <ul>
+                        <li>magic spells</li>
+                        <li>blood on hit</li>
+                        <li>blood on death</li>
+                    </ul>
+                <li>[A]NPC state machines</li>
+                <li>Dialogs:<br/>
+                    <ul>
+                        <li>[]Player Info Dialog</li>
+                        <li>[C]Entity to Entity Dialog</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
         
-        <a title="engine"></a>
-        <p>
-            Estimated Progress: ?%<br/>
-            SDL Tile Engine
-        </p>
-        <ul>
-            <li>[B]Supported Resolutions: 1280×768</li>
-            <li>[B]Square Tiles ( 32 x 32 )</li>
-            <li>[B]100x100 maps</li>
-            <li>[]particle engine effects for:<br/>
-                <ul>
-                    <li>magic spells</li>
-                    <li>blood on hit</li>
-                    <li>blood on death</li>
-                </ul>
-            <li>[A]NPC state machines</li>
-            <li>Dialogs:<br/>
-                <ul>
-                    <li>[]Player Info D.</li>
-                    <li>[C]Entity to Entity Dialog</li>
-                </ul>
-            </li>
-        </ul>
+        <div id="map_editor">
+            <h3>Map Editor</h3>
+            <p>
+                Map Editor using my winapi lib. For simplicity sake, mobs stats and
+                special functionality will be taken care by the source code. In my
+                future editors, if I know a scripting language and feel it won't
+                take foreverz, I'll rig the editor to do entity scripting. 
+            </p>
+            <ul>
+                <li>Set size(up to 100x100)</li>
+                <li>Place Tiles</li>
+                <li>Place individual mobs<br/>
+                <li>Place mob spawners. Spawners spawn just one type with a max count and delay
+                and intial spawn count. </li>
+            </ul>
+        </div>
         
-        <a title="FunStuff"></a>
-        <p>
-            Estimated Progress: ?%<br/>
-        </p>        
-        <ul>
-            <li>[]Body Explode when destroyed using both animation and a particle engine</li>
-        </ul>
+        <div id="FunStuff">
+            <h3>Fun Stuff</h3>
+            <p>
+                Estimated Progress: ?%<br/>
+            </p>        
+            <ul>
+                <li>[]Body Explode when destroyed using both animation and a particle engine</li>
+            </ul>
+        </div>
         
-        <h3>
-            Game Overview: UO(highly simplified) meets Zelda meets Gauntlet. 
-        </h3>
-        <p>
-            You run around killing monsters, leveling up your skills, collecting treasure
-            all in the hopes of beating the bad guy at the end of the level. 
-        </p>
-        <p>
-            The leveling up system is so you can defeat tougher monsters, using your skills on them levels you up. 
-        </p>
-        <p>
-            You know how hard a monster is by the difficulty flag, grey, yellow, red. 
-        </p>
-        <p>
-          You can either be a warrior or a mage. There will only be one skill for each type. Warrior is swords,
-          mage is magic. As you level up, your weapons and spell effects change color.
-        </p>
+        <div id="general_description">
+            <h3>General Description<h3>
+            <h3>
+                Game Overview: UO(highly simplified) meets Zelda meets Gauntlet meets Diablo. 
+            </h3>
+            <p>
+                You run around killing monsters, leveling up your skills, collecting treasure
+                all in the hopes of beating the bad guy at the end of the level. This is a non-arcade 
+                game, there will be no timer or gradually losing health. The player can go at their
+                own leisure, but the action will be very arcade like. 
+            </p>
+            <p>
+                The map is made in a map editor with both spawns and individually placed mobs. I want 
+                there to be at least 3 well made maps. In an ideal world I'd make 10 :D
+            </p>
+            <p>
+                The leveling up system is so you can defeat tougher monsters, using your skills on them levels you up. 
+            </p>
+            <p>
+                You know how hard a monster is by the difficulty flag, grey, yellow, red. 
+            </p>
+            <p>
+              You can either be a warrior or a mage. There will only be one skill for each type. Warrior is swords,
+              mage is magic. As you level up, your weapons and spell effects change color.
+            </p>
+        </div>
+        
+        <div id="map_descriptions">
+            <h3>Map Descriptions</h3>
+            <h2>Map 01 - Forest World</h2>
+        </div>
     </body>
 </html>
