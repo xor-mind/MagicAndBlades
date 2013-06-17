@@ -68,6 +68,9 @@
     <ClInclude Include="Sheep.h">
       <Filter>Header Files\entities</Filter>
     </ClInclude>
+    <ClInclude Include="particle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="latest.txt">

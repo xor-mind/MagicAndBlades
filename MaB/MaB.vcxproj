@@ -80,6 +80,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MabMisc.h" />
     <ClInclude Include="Monster.h" />
+    <ClInclude Include="particle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Sheep.h" />
     <ClInclude Include="State.h" />

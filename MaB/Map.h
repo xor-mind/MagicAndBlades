@@ -229,6 +229,7 @@ public:
 		grass        = Surface::BmpLoad( "./art/grass01.bmp" );
 		dirt         = Surface::BmpLoad( "./art/grass02.bmp" );
 		terrainProps = Surface::BmpLoad( "./art/terrainProps.bmp" );
+		
 
 		for ( int y = 0; y < (int)h; ++y )
 			for ( int x = 0; x < (int)w; ++x )
@@ -249,7 +250,9 @@ public:
 		avatar       = Surface::BmpLoad("./art/avatar01.bmp");
 		healthBar    = Surface::BmpLoad("./art/healthBar.bmp");
 		sheepSurface = Surface::BmpLoad("./art/sheep.bmp");
-		
+		Surface::PinkTransparent( sheepSurface );
+		Surface::PinkTransparent( avatar );
+
 		SheepFactory::instance()->healthBar = healthBar;
 		SheepFactory::instance()->model     = sheepSurface;
 

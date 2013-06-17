@@ -36,6 +36,7 @@ public:
 		for ( ; x < 16*3; x+=16 )
 		{
 			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::PinkTransparent( s );
 			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
 			moveLeft.surfaces.push_back( s );
 			moveRight.surfaces.push_back( SDL_Video::flip_surface( s, 0 ) );
@@ -43,12 +44,14 @@ public:
 		for ( ; x < 16*6; x+=16 )
 		{
 			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::PinkTransparent( s );
 			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
 			moveBot.surfaces.push_back( s );
 		}
 		for ( ; x < 16*9; x+=16 )
 		{
 			SDL_Surface* s = SDL_CreateRGBSurface(SDL_SWSURFACE, 16, 32, 32, 0, 0, 0, 0);
+			Surface::PinkTransparent( s );
 			Surface::OnDraw( s, model, 0, 0, x, 0, 16, 32 );
 			moveTop.surfaces.push_back( s );
 		}
