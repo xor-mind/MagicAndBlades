@@ -1,5 +1,5 @@
-#ifndef particle_h
-#define particle_h
+#ifndef PARTICLE_H
+#define PARTICLE_H
 
 #include "SDL.h"
 #include "SDL_Surface.h"
@@ -12,6 +12,7 @@ struct Particle
 	int color;
 	Uint32 lifetime;
 	Uint32 startTime;
+	bool alive;
 };
 
 class ParticleEmitter
@@ -28,6 +29,7 @@ protected:
 public:
 	virtual ~ParticleEmitter() {}
 
+	virtual void Init( int x, int y ) { this->x = x; this->y = y; Init( particleCount ); }
 	virtual void Init() { Init( particleCount ); }
 	virtual void Init( int count )
 	{
@@ -36,13 +38,13 @@ public:
 
 		for (int i = 0; i < particleCount; i++)
 		{
-			particle[i].startTime = SDL_GetTicks();
-			particle[i].color = 1;
-			particle[i].lifetime = rand() % lifetime + lifetime / 4;
+			AddParticle( particle[i] );
 		}
 	}
-	virtual void Render(SDL_Surface* screen) = 0;
+	virtual void Render(SDL_Surface* screen) const = 0;
 	virtual void Update() = 0;
+	virtual unsigned int AddParticle( Particle& p )  = 0;
 };
+
 
 #endif
