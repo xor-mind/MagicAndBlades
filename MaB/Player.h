@@ -186,21 +186,24 @@ public:
 				Surface::OnDraw( dest, moveBot.surfaces[1], render_x, render_y );
 			}
 			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
-			Surface::OnDraw( dest, healthBar, render_x + dim.x/2 -  healthBar->w/2, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
+			Surface::OnDraw( dest, healthBar, (int)(render_x + dim.x/2 -  healthBar->w/2), render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
+			
+			if ( warMode )
+			{
+				int x = (int)(pos.x - cr.left +dim.x/2 - 8), 
+					y = (int)(pos.y - cr.top - 28);
+				exclamation.Render( dest, x, y );
+			}
+			if ( combat.target )
+			{
+				int x = (int)(combat.target->pos.x - cr.left + combat.target->dim.x/2 - 8), 
+					y = (int)(combat.target->pos.y - cr.top - 28);
+				exclamation.Render( dest, x, y );
+			}			
+			particles()->Render( dest, cr );
 		}
 
-		if ( warMode )
-		{
-			int x = (int)(pos.x - cr.left +dim.x/2 - 8), 
-				y = (int)(pos.y - cr.top - 28);
-			exclamation.Render( dest, x, y );
-		}
-		if ( combat.target )
-		{
-			int x = (int)(combat.target->pos.x - cr.left + combat.target->dim.x/2 - 8), 
-				y = (int)(combat.target->pos.y - cr.top - 28);
-			exclamation.Render( dest, x, y );
-		}
+
 	}
 	void MultipleChoiceChunkEvent(MultipleChoiceChunk* mcc) override
 	{

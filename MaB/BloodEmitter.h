@@ -4,6 +4,7 @@
 #include "particle.h"
 #include "SDL_Gfx.h"
 
+
 typedef unsigned int uint;
 
 class BloodEmitter01 : public ParticleEmitter
@@ -28,16 +29,17 @@ public:
 		ParticleEmitter::Init( x, y );
 		emitterStartTime = SDL_GetTicks();
 	}
-	void Render(SDL_Surface* screen) const override
+	void Render(SDL_Surface* screen, UsefulMath::Rectangle& r) const override
 	{
 		SDL_LockSurface( screen );
 
-		for (int i = 0; i < particleCount; i++)
+		int size = particle.size();
+		for (int i = 0; i < size; i++)
 		{
 			if ( particle[i].alive )
 				if ( particle[i].x >= 0 && particle[i].x < screen->w )
 					if ( particle[i].y >= 0 && particle[i].y < screen->h )
-			SDL_Video::put_pixel32(screen, (int)particle[i].x, (int)particle[i].y, 0xff3333 );
+			SDL_Video::put_pixel32(screen, (int)(particle[i].x - r.left), (int)(particle[i].y - r.top), 0xff3333 );
 		}
 
 		SDL_UnlockSurface( screen );
@@ -45,8 +47,8 @@ public:
     void Update() override
 	{
 		unsigned int t = SDL_GetTicks();
-
-		for (int i = 0; i < particleCount; i++)
+		int size = particle.size();
+		for (int i = 0; i < size; i++)
 		{
 			if ( t - emitterStartTime > emitterLife )
 				particle[i].alive = false;
@@ -105,6 +107,43 @@ public:
 		// restart the timer
 		return p.startTime = SDL_GetTicks();
 	}
+};
+
+class BloodEmitter : public ParticleEmitter
+{
+	ParticleEmitter* be01, *be02, *currentEmitter;
+
+public:
+	BloodEmitter() 
+	{
+		be01 = new BloodEmitter01();
+		be02 = new BloodEmitter02();
+		currentEmitter = be01;
+	}
+	~BloodEmitter()
+	{
+		delete be01; delete be02;
+	}
+	void Init( int x, int y )
+	{
+		if ( rand()%2 == 1 )
+			currentEmitter = be01;
+		else
+			currentEmitter = be02;
+
+		currentEmitter->Init( x, y );
+	}
+
+	void Update()
+	{
+		currentEmitter->Update();
+	}
+
+	void Render(SDL_Surface* screen, UsefulMath::Rectangle& r) const
+	{
+		currentEmitter->Render( screen, r );
+	}
+	unsigned int AddParticle( Particle& p ) override { return 0; }
 };
 
 #endif

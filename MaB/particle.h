@@ -3,6 +3,7 @@
 
 #include "SDL.h"
 #include "SDL_Surface.h"
+#include "Rectangle.h"
 #include <vector>
 
 struct Particle
@@ -41,7 +42,7 @@ public:
 			AddParticle( particle[i] );
 		}
 	}
-	virtual void Render(SDL_Surface* screen) const = 0;
+	virtual void Render(SDL_Surface* screen, UsefulMath::Rectangle& r) const = 0;
 	virtual void Update() = 0;
 	virtual unsigned int AddParticle( Particle& p )  = 0;
 };

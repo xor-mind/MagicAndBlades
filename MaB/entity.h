@@ -12,6 +12,7 @@
 #include "Dialog.h"
 #include "EntityEvents.h"
 #include "MabMisc.h"
+#include "BloodEmitter.h"
 
 using namespace boost::assign; // bring 'operator+=()' into scope
 
@@ -62,6 +63,8 @@ struct Entity : public EntityEventManager
 		Melee melee;
 	};
 	Attack* attack;
+
+	static ParticleEmitter* particles() { static ParticleEmitter* p = new BloodEmitter(); return p; }
 public:
 
 	Entity( ) : model(nullptr) { attack = new Attack( this ); }
@@ -112,6 +115,8 @@ public:
 		FoV.right = (int)( pos.x + dim.x/2 + fovDim.x );
 		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
 		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
+
+		particles()->Update();
 	}
 	virtual void Render( SDL_Surface* dest, Entity* camera )
 	{
@@ -126,10 +131,18 @@ public:
 			Surface::OnDraw( dest, model, render_x, render_y );
 			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
 			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
+			particles()->Render( dest, cr );
 		}
 	}
 	
-	void Damage( int d ) { health -= d; if (health <= 0 ) remove = true; }
+	void Damage( int d ) 
+	{ 
+		int x = (int)(pos.x + rand()%(int)dim.x),
+			y = (int)(pos.y + rand()%(int)dim.y);
+		particles()->Init( x, y );
+		health -= d; 
+		if (health <= 0 ) remove = true; 
+	}
 
 	void MoveToPlayer( Entity* target )
 	{

@@ -71,7 +71,7 @@
     <ClInclude Include="particle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BoodEmitter.h">
+    <ClInclude Include="BloodEmitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

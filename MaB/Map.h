@@ -226,8 +226,8 @@ public:
 		SDL_SetClipRect(display, &clipRect);
 
 		muhammod     = Surface::BmpLoad("./art/muhammod.bmp");
-		grass        = Surface::BmpLoad( "./art/grass01.bmp" );
-		dirt         = Surface::BmpLoad( "./art/grass02.bmp" );
+		grass        = Surface::BmpLoad( "./art/grass03.bmp" );
+		dirt         = Surface::BmpLoad( "./art/grass03.bmp" );
 		terrainProps = Surface::BmpLoad( "./art/terrainProps.bmp" );
 		
 
