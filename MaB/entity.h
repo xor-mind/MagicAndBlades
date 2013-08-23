@@ -94,6 +94,7 @@ public:
 		if ( remainingDistance.x != 0.f || remainingDistance.y != 0.f )
 		{
 			remainingDistance -= vel;
+
 			if (remainingDistance.x == 0.f && remainingDistance.y == 0.f )
 			{
 				vel = Vector(0, 0);

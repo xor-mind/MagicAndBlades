@@ -153,22 +153,26 @@ public:
 				tempPos_x = (int)e->pos.x;
 				e->pos.x = e->pos.x - e->vel.x;
 				collision = EntityCollision( e );
-				if ( collision )
+				if ( collision ) {
 					e->pos.x = (float)tempPos_x;
+				}
 				else
 				{
-					e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? (offs_x-e->dim.x) : -(tilew - offs_x) ) );
+					int dim_offs_x = int( tempPos_x + e->dim.x ) % tilew;
+					e->pos.x = tempPos_x - ( e->vel.x > 0 ? dim_offs_x : -(tilew - offs_x) );  //= //(float)( tempPos_x - ( e->vel.x > 0 ? ( offs_x - e->dim.x ) : -(tilew - offs_x) ) );
 					return;
 				}
 			}
 
 			// second, change y position
+			tempPos_x = (int)e->pos.x;
 			tempPos_y = (int)e->pos.y;
 			e->pos.y = e->pos.y - e->vel.y; 
 			collision = EntityCollision( e );
 			if ( collision )
 			{
-				e->pos.x = (float)( tempPos_x - ( e->vel.x > 0 ? (offs_x-e->dim.x) : -(tilew - offs_x) ) );
+				int dim_offs_x = int( tempPos_x + e->dim.x ) % tilew;
+				e->pos.x = tempPos_x - ( e->vel.x > 0 ? dim_offs_x : -(tilew - offs_x) );  
 				e->pos.y = (float)( tempPos_y - ( e->vel.y > 0 ? offs_y : -(tilew - offs_y) ) );
 				return;
 			}
@@ -219,7 +223,7 @@ public:
 		
 		video.screen = display;
 		camera->pos = camera->vel = Vector( 0, 0 );
-		camera->dim = Vector( 32*40, 32*24 ); // map is 512x256
+		camera->dim = Vector( (float)display->w, (float)display->h ); 
 
 		clipRect.x = 0; clipRect.y =  0, clipRect.w = (Uint16)camera->dim.x; clipRect.h = (Uint16)camera->dim.y;
 		video.clipRect = clipRect;

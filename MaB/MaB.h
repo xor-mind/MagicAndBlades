@@ -17,11 +17,12 @@
 class MaB : public SDL_App
 {
 	SDL_Surface * screen;
-	HighPerformanceTimer hpt;
+	HighPerformanceTimer hpt, tearTimer;
 	Vector screenDim;
 	FpsCounter fpsCounter;
 	SDL_Video video;
 	Map* map;
+		  
 public:
 	MaB() {}
 	~MaB() {}
@@ -29,20 +30,24 @@ public:
 	bool Init() override
 	{
 		video.screen = screen;
-		screenDim = Vector( 1280, 768 );
-		if((screen = SDL_SetVideoMode( (int)screenDim.x, (int)screenDim.y, 32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL) 
+		// 1280 = 20*64, 768 = 12*64
+		screenDim = Vector( 20*64, 12*64 );
+
+		if(( screen = SDL_SetVideoMode( (int)screenDim.x, (int)screenDim.y, 32,   SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL) //SDL_FULLSCREEN |
 		{
 			return false;
 		}
 
 		map = new HomeLand();
 		((HomeLand*)map)->Init( screen );
-
+		tearTimer.InitTimer(60);
 		hpt.InitTimer(20); 
 		// _putenv("SDL_VIDEODRIVER=windib"); whats frame rate with this in?
 		fpsCounter.Init( std::string( "consola.ttf" ) );
+		tearTimer.UpdateTime0();
 		return true;
 	}
+
 	void Render() override
 	{
 		((HomeLand*)map)->Render( screen );
@@ -77,6 +82,10 @@ public:
 
 	void KeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) override
 	{
+		if ( sym == SDLK_ESCAPE) {
+			SDL_FreeSurface( screen );
+			screen = SDL_SetVideoMode( screenDim.x, screenDim.y, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+		}
 		((HomeLand*)map)->KeyDown( sym, mod, unicode );
 	}
 	void KeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) override
