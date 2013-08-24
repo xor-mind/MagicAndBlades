@@ -64,11 +64,19 @@ struct Entity : public EntityEventManager
 	};
 	Attack* attack;
 
-	static ParticleEmitter* particles() { static ParticleEmitter* p = new BloodEmitter(); return p; }
+	ParticleEmitter* particles;
 public:
 
-	Entity( ) : model(nullptr) { attack = new Attack( this ); }
-	virtual ~Entity() { delete attack; }
+	Entity( ) : model(nullptr) 
+	{ 
+		attack = new Attack( this ); 
+		particles = new BloodEmitter();
+	}
+	virtual ~Entity() 
+	{ 
+		delete particles;
+		delete attack; 
+	}
 
 	Rect Rectangle() { return Rect( pos, dim ); }
 
@@ -117,7 +125,7 @@ public:
 		FoV.top = (int)( pos.y + dim.y/2 - fovDim.y );
 		FoV.bottom = (int)( pos.y + dim.y/2 + fovDim.x );
 
-		particles()->Update();
+		particles->Update();
 	}
 	virtual void Render( SDL_Surface* dest, Entity* camera )
 	{
@@ -132,7 +140,7 @@ public:
 			Surface::OnDraw( dest, model, render_x, render_y );
 			int healthBarWidth = (int)( (health/(float)str) * healthBar->w );
 			Surface::OnDraw( dest, healthBar, render_x, render_y - healthBar->h - 2, 0, 0, healthBarWidth, healthBar->h );
-			particles()->Render( dest, cr );
+			particles->Render( dest, cr );
 		}
 	}
 	
@@ -140,9 +148,10 @@ public:
 	{ 
 		int x = (int)(pos.x + rand()%(int)dim.x),
 			y = (int)(pos.y + rand()%(int)dim.y);
-		particles()->Init( x, y );
+		particles->Init( x, y );
 		health -= d; 
 		if (health <= 0 ) remove = true; 
+		std::cout << "damaged called!" << std::endl;
 	}
 
 	void MoveToPlayer( Entity* target )
@@ -153,14 +162,9 @@ public:
 			dy = (int)( pos.y - target->pos.y );
 		int dist_x = abs( dx ), dist_y = abs( dy );
 
-		if ( dist_x > dist_y )
-		{
-			vel.x = -sgn( dx ) * speed;
-		}
-		else
-		{
-			vel.y = -sgn( dy ) * speed;
-		}
+
+		vel.x = -sgn( dx ) * speed;
+		vel.y = -sgn( dy ) * speed;
 	}
 	
 	// move x tiles by y tiles

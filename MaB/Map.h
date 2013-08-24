@@ -340,7 +340,10 @@ public:
 	}
 	void Render( SDL_Surface * screen )
 	{
-		int pos_y = (int) camera->pos.y, 
+		SDL_FillRect(screen, /* In the window... */
+		     NULL,   /* The entire window (dest rect NULL for short) */
+		     0); 
+		/*int pos_y = (int) camera->pos.y, 
 			max_y = (int)( camera->pos.y + camera->dim.y ),
 			max_x = (int)( camera->pos.x + camera->dim.x ),
 		   offs_x = (int) camera->pos.x % tilew,
@@ -356,7 +359,7 @@ public:
 					render_x = (int)( pos_x - camera->pos.x - offs_x );
 				data[tile].Render(screen, render_x, render_y);                                                            
 			}
-		}
+		}*/
 
 		// render entities
 		for(Entity* entity : entities)

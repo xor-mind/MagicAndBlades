@@ -11,6 +11,7 @@ class BloodEmitter01 : public ParticleEmitter
 {
 	uint emitterLife;
 	uint emitterStartTime;
+	bool emitterDead;
 public:
 	BloodEmitter01()
 	{
@@ -21,6 +22,7 @@ public:
 		speed = 3.f;
 		colour = 0;
 		lifetime = 500;
+		emitterDead = true;
 	}
 	virtual ~BloodEmitter01() {}
 
@@ -28,9 +30,12 @@ public:
 	{
 		ParticleEmitter::Init( x, y );
 		emitterStartTime = SDL_GetTicks();
+		emitterDead = false;
 	}
 	void Render(SDL_Surface* screen, UsefulMath::Rectangle& r) const override
 	{
+		if ( emitterDead )
+			return;
 		SDL_LockSurface( screen );
 
 		int size = particle.size();
@@ -39,7 +44,12 @@ public:
 			if ( particle[i].alive )
 				if ( particle[i].x >= 0 && particle[i].x < screen->w )
 					if ( particle[i].y >= 0 && particle[i].y < screen->h )
-			SDL_Video::put_pixel32(screen, (int)(particle[i].x - r.left), (int)(particle[i].y - r.top), 0xff3333 );
+					{
+						SDL_Video::put_pixel32(screen, (int)(particle[i].x - r.left), (int)(particle[i].y - r.top), 0xff3333 );
+						SDL_Video::put_pixel32(screen, (int)(particle[i].x - 1 - r.left), (int)(particle[i].y - r.top), 0xff3333 );
+						SDL_Video::put_pixel32(screen, (int)(particle[i].x - r.left), (int)(particle[i].y + 1 - r.top), 0xff3333 );
+						SDL_Video::put_pixel32(screen, (int)(particle[i].x - 1 - r.left), (int)(particle[i].y + 1 - r.top), 0xff3333 );
+					}
 		}
 
 		SDL_UnlockSurface( screen );
@@ -50,8 +60,11 @@ public:
 		int size = particle.size();
 		for (int i = 0; i < size; i++)
 		{
-			if ( t - emitterStartTime > emitterLife )
+			if ( t - emitterStartTime > emitterLife ) {
 				particle[i].alive = false;
+				emitterDead = true;
+				break;
+			}
 			else
 				if ( t - particle[i].startTime > particle[i].lifetime )
 				{

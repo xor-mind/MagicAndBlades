@@ -200,7 +200,7 @@ public:
 					y = (int)(combat.target->pos.y - cr.top - 28);
 				exclamation.Render( dest, x, y );
 			}			
-			particles()->Render( dest, cr );
+			particles->Render( dest, cr );
 		}
 
 
